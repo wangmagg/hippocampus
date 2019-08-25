@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="935e991d-381f-4999-b18b-6a5544596bf7" name="Default Changelist" comment="" />
+    <list default="true" id="935e991d-381f-4999-b18b-6a5544596bf7" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/extra/ipython/losshipp_figuresaving.ipynb.zip" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/extra/ipython/projection.ipynb.zip" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/extra/ipython/raytrace.ipynb.zip" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/extra/ipython/trimesh_subdivision.ipynb.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Midsurface.py" beforeDir="false" afterPath="$PROJECT_DIR$/Midsurface.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PointCloud.py" beforeDir="false" afterPath="$PROJECT_DIR$/PointCloud.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/extra/ipython/losshipp_figuresaving.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/extra/ipython/projection.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/extra/ipython/raytrace.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/extra/ipython/trimesh_subdivision.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mesh.py" beforeDir="false" afterPath="$PROJECT_DIR$/mesh.py" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,8 +29,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/PointCloud.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="291">
-              <caret line="247" column="30" lean-forward="true" selection-start-line="247" selection-start-column="30" selection-end-line="247" selection-end-column="30" />
+            <state relative-caret-position="3345">
+              <caret line="234" selection-start-line="234" selection-end-line="234" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -28,8 +41,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Midsurface.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="246">
-              <caret line="465" column="88" selection-start-line="465" selection-start-column="88" selection-end-line="465" selection-end-column="88" />
+            <state relative-caret-position="6180">
+              <caret line="423" column="17" selection-start-line="414" selection-start-column="8" selection-end-line="423" selection-end-column="17" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -40,8 +53,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/mesh.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="9842">
-              <caret line="690" lean-forward="true" selection-start-line="690" selection-end-line="690" />
+            <state relative-caret-position="9765">
+              <caret line="663" column="33" selection-start-line="663" selection-start-column="33" selection-end-line="663" selection-end-column="33" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -49,20 +62,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Optimization.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="90">
+            <state relative-caret-position="15">
               <caret line="6" selection-start-line="6" selection-end-line="6" selection-end-column="58" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/pipeline.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="15" column="35" lean-forward="true" selection-start-line="15" selection-start-column="35" selection-end-line="15" selection-end-column="35" />
+            <state relative-caret-position="135">
+              <caret line="15" column="35" selection-start-line="15" selection-start-column="35" selection-end-line="15" selection-end-column="35" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
@@ -102,6 +115,9 @@
       <find>incident</find>
     </findStrings>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
@@ -135,19 +151,17 @@
         <option value="$PROJECT_DIR$/Qoptimization.py" />
         <option value="$PROJECT_DIR$/visualize.py" />
         <option value="$PROJECT_DIR$/optimization.py" />
-        <option value="$PROJECT_DIR$/mesh.py" />
-        <option value="$PROJECT_DIR$/PointCloud.py" />
-        <option value="$PROJECT_DIR$/Midsurface.py" />
         <option value="$PROJECT_DIR$/Optimization.py" />
         <option value="$PROJECT_DIR$/pipeline.py" />
+        <option value="$PROJECT_DIR$/PointCloud.py" />
+        <option value="$PROJECT_DIR$/Midsurface.py" />
+        <option value="$PROJECT_DIR$/mesh.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="36" />
-    <option name="y" value="37" />
+  <component name="ProjectFrameBounds" fullScreen="true">
     <option name="width" value="1440" />
-    <option name="height" value="803" />
+    <option name="height" value="900" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -189,8 +203,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="36" y="37" width="1440" height="803" extended-state="0" />
-    <editor active="true" />
+    <frame x="0" y="0" width="1440" height="900" extended-state="0" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49873096" weight="0.07892882" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -203,9 +216,9 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.4988519" visible="true" weight="0.39803094" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" sideWeight="0.4988519" visible="true" weight="0.34096387" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.50172216" side_tool="true" weight="0.46714172" />
-      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49827784" weight="0.34575164" />
+      <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49827784" weight="0.3445851" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -282,43 +295,15 @@
     <entry file="file://$PROJECT_DIR$/Midcurve.py" />
     <entry file="file://$PROJECT_DIR$/ca_sub_splice.py" />
     <entry file="file://$PROJECT_DIR$/spline.py" />
-    <entry file="file://$PROJECT_DIR$/TargetMesh.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-188">
-          <caret line="25" selection-start-line="25" selection-end-line="25" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/SourceMesh.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="190">
-          <caret line="151" selection-start-line="151" selection-end-line="151" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Qoptimization.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/visualize.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="11" lean-forward="true" selection-start-line="1" selection-start-column="11" selection-end-line="1" selection-end-column="11" />
-          <folding>
-            <element signature="e#0#30#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/TargetMesh.py" />
+    <entry file="file://$PROJECT_DIR$/SourceMesh.py" />
+    <entry file="file://$PROJECT_DIR$/Qoptimization.py" />
+    <entry file="file://$PROJECT_DIR$/visualize.py" />
+    <entry file="file://$PROJECT_DIR$/losshipp.py" />
     <entry file="file://$PROJECT_DIR$/PointCloud.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="291">
-          <caret line="247" column="30" lean-forward="true" selection-start-line="247" selection-start-column="30" selection-end-line="247" selection-end-column="30" />
+        <state relative-caret-position="3345">
+          <caret line="234" selection-start-line="234" selection-end-line="234" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
@@ -327,8 +312,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Midsurface.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="246">
-          <caret line="465" column="88" selection-start-line="465" selection-start-column="88" selection-end-line="465" selection-end-column="88" />
+        <state relative-caret-position="6180">
+          <caret line="423" column="17" selection-start-line="414" selection-start-column="8" selection-end-line="423" selection-end-column="17" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
@@ -337,38 +322,28 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/mesh.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="9842">
-          <caret line="690" lean-forward="true" selection-start-line="690" selection-end-line="690" />
+        <state relative-caret-position="9765">
+          <caret line="663" column="33" selection-start-line="663" selection-start-column="33" selection-end-line="663" selection-end-column="33" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Optimization.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" selection-start-line="6" selection-end-line="6" selection-end-column="58" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/losshipp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1380">
-          <caret line="92" column="41" selection-start-line="92" selection-start-column="41" selection-end-line="92" selection-end-column="41" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/pipeline.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" column="35" lean-forward="true" selection-start-line="15" selection-start-column="35" selection-end-line="15" selection-end-column="35" />
+        <state relative-caret-position="135">
+          <caret line="15" column="35" selection-start-line="15" selection-start-column="35" selection-end-line="15" selection-end-column="35" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Optimization.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="6" selection-start-line="6" selection-end-line="6" selection-end-column="58" />
         </state>
       </provider>
     </entry>

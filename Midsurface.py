@@ -415,11 +415,11 @@ class Midsurface:
         layout = go.Layout(
                     scene = dict(
                         xaxis = dict(
-                            title='Posterior-Anterior'),
+                            title='Posterior-Anterior (mm)'),
                         yaxis = dict(
-                            title='Right-Left'),
+                            title='Right-Left (mm)'),
                         zaxis = dict(
-                            title = 'Superior-Inferior')
+                            title = 'Superior-Inferior (mm)')
                     )
                 )
         
@@ -463,7 +463,7 @@ if __name__ == "__main__":
     surface = ms.surface(100, 100)
     ms.plot_splines()
 
-    with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100_ras_biasedlow.df", "wb") as output:
-        pickle.dump(surface, output)
+    #with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100_ras_biasedlow.df", "wb") as output:
+    #    pickle.dump(surface, output)
 
     ms.plot_surface()

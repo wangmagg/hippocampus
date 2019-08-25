@@ -641,11 +641,11 @@ def visualize(V, F, color, normals = False):
 
 
 if __name__ == "__main__":
-    with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100.df", "rb") as input:
+    with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100_ras.df", "rb") as input:
         surface = pickle.load(input)
 
     surface = downsample(surface, 50, 50)
-    W = 3*torch.ones(50**2, 1)
+    W = 0.48*torch.ones(50**2, 1)
 
     Q, F = meshSource(surface)
     C, N = compCN(Q, F)
@@ -656,36 +656,53 @@ if __name__ == "__main__":
     VS = generateSourceULW(Qd, W, Fjoined, facemap)
     CS, NS = compCN(VS, Fjoined)
 
+    layout = go.Layout(
+        scene=dict(
+            xaxis=dict(
+                title='Anterior-Posterior (mm)'),
+            yaxis=dict(
+                title='Left-Right (mm)'),
+            zaxis=dict(
+                title='Superior-Inferior (mm)')
+        )
+    )
+
     figMS = visualize(Q, F, 'Reds')
-    figMSonly = go.Figure(data = [figMS.data[0], figMS.data[1], figMS.data[2]])
+    figMSonly = go.Figure(data = [figMS.data[0], figMS.data[1], figMS.data[2]], layout = layout)
     plotly.offline.plot(figMSonly)
 
     figS = visualize(VS, Fjoined, 'Blues')
-    figSonly = go.Figure(data = [figS.data[0], figS.data[1], figS.data[2]])
+    figSonly = go.Figure(data = [figS.data[0], figS.data[1], figS.data[2]], layout = layout)
     plotly.offline.plot(figSonly)
 
     figMS_S = go.Figure(data = [figMS.data[0], figMS.data[1], figMS.data[2],
-                                figS.data[0], figS.data[1], figS.data[2]])
+                                figS.data[0], figS.data[1], figS.data[2]], layout = layout)
     plotly.offline.plot(figMS_S)
 
     img = "ENS_summer_2019/ca_sub_combined.img"
-    VT, FT, CT, NT = generateTarget(img, 311, 399, system = "RAS")
+    #VT, FT, CT, NT = generateTarget(img, 311, 399, system = "RAS")
 
-    with open("PycharmProjects/hippocampus/dataframes/targetVds_ras", "wb") as output:
-        pickle.dump(VT, output)
+    #with open("PycharmProjects/hippocampus/dataframes/targetVds_ras", "wb") as output:
+        #pickle.dump(VT, output)
 
-    with open("PycharmProjects/hippocampus/dataframes/targetFds_ras", "wb") as output:
-        pickle.dump(FT, output)
-    
-    figT = visualize(VT, FT, 'Portland', normals = True)
+    #with open("PycharmProjects/hippocampus/dataframes/targetFds_ras", "wb") as output:
+        #pickle.dump(FT, output)
 
-    figTonly = go.Figure(data = [figT.data[0], figT.data[1], figT.data[2]])
+    with open("PycharmProjects/hippocampus/dataframes/targetVds_ras", "rb") as input:
+        VT = pickle.load(input)
+
+    with open("PycharmProjects/hippocampus/dataframes/targetFds_ras", "rb") as input:
+        FT = pickle.load(input)
+
+    figT = visualize(VT, FT, 'Portland', normals = False)
+
+    figTonly = go.Figure(data = [figT.data[0], figT.data[1], figT.data[2]], layout = layout)
 
     plotly.offline.plot(figTonly)
     
     figcomb = go.Figure(data = [figMS.data[0], figMS.data[1], figMS.data[2],
                                 figS.data[0], figS.data[1], figS.data[2],
-                                figT.data[0], figT.data[1], figT.data[2]])
+                                figT.data[0], figT.data[1], figT.data[2]], layout = layout)
 
     plotly.offline.plot(figcomb)
 

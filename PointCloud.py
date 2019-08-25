@@ -183,7 +183,18 @@ class PointCloud:
 
             data.append(trace)
 
-        fig = go.Figure(data=data)
+        layout = go.Layout(
+            scene=dict(
+                xaxis=dict(
+                    title='Anterior-Posterior (mm)'),
+                yaxis=dict(
+                    title='Left-Right (mm)'),
+                zaxis=dict(
+                    title='Superior-Inferior (mm)')
+            )
+        )
+
+        fig = go.Figure(data=data, layout = layout)
         plotly.offline.plot(fig)
 
     def _plotCombined(self, cartesian_data):
@@ -211,7 +222,18 @@ class PointCloud:
 
         data.append(trace)
 
-        fig = go.Figure(data=data)
+        layout = go.Layout(
+            scene=dict(
+                xaxis=dict(
+                    title='Anterior-Posterior (mm)'),
+                yaxis=dict(
+                    title='Left-Right (mm)'),
+                zaxis=dict(
+                    title='Superior-Inferior (mm)')
+            )
+        )
+
+        fig = go.Figure(data=data, layout = layout)
         plotly.offline.plot(fig)
 
     def plot(self, system = "voxel"):

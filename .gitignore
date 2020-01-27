@@ -1,1 +1,6 @@
+# ignore idea/workspace files
 *.idea/workspace.xml
+# ignore DS file
+*.DS_Store
+# ignore pycache
+*__pycache__

@@ -648,6 +648,12 @@ class Optimization:
 
         return figcomb
 
+    def gridDim(self, num_s):
+        dim = 50
+        while num_s > 0:
+            dim = 2*dim - 1
+        return dim
+
     def unfold(self, Q, wu, wl):
         """Unfold joined upper and lower surface to produce thickness map
             Args:

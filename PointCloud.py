@@ -113,22 +113,31 @@ class PointCloud:
         img_files = ['ca1', 'ca2', 'ca3', 'subiculum']
 
         #Temporary holding dictionaries for data from each file
-        data_img = {'ca1': [], 'ca2': [], 'ca3': [], 'subiculum': []}
-        data_img_ras = {'ca1': [], 'ca2': [], 'ca3': [], 'subiculum': []}
+        #data_img = {'ca1': [], 'ca2': [], 'ca3': [], 'subiculum': []}
+        #data_img_ras = {'ca1': [], 'ca2': [], 'ca3': [], 'subiculum': []}
+        data_img_list = []
+        data_img_ras_list = []
 
         #For each file, convert to Cartesian and arrange by slice
         for img in img_files:
             data_df, data_ras_df = self._toCartesian(self.path + img + '.img')
-            data_df_arr, data_ras_df_arr = self._arrangeBySlice(xmin, xmax, data_df, data_ras_df)
-            data_img[img] = data_df_arr[0]
-            data_img_ras[img] = data_ras_df_arr[0]
+            data_df['label'] = img
+            data_ras_df['label'] = img
+            data_img_list.append(data_df)
+            data_img_ras_list.append(data_ras_df)
+            #data_df_arr, data_ras_df_arr = self._arrangeBySlice(xmin, xmax, data_df, data_ras_df)
+            #data_img[img] = data_df_arr[0]
+            #data_img_ras[img] = data_ras_df_arr[0]
 
         #Convert dictionaries to dataframes
-        data_img_df = pd.DataFrame(data_img)
-        data_img_ras_df = pd.DataFrame(data_img_ras)
+        #data_img_df = pd.DataFrame(data_img)
+        #data_img_ras_df = pd.DataFrame(data_img_ras)
+        data_img_df = pd.concat(data_img_list, ignore_index = True)
+        data_img_ras_df = pd.concat(data_img_ras_list, ignore_index = True)
+        data_img_df = data_img_df.loc[(data_img_df[0] >= xmin) & (data_img_df[0] <= xmax)]
+        data_img_ras_df = data_img_ras_df.loc[data_img_df.index]
 
         return data_img_df, data_img_ras_df
-
 
     def Cartesian(self, xmin, xmax, system = "voxel"):
         """
@@ -261,10 +270,15 @@ class PointCloud:
 
 
 if __name__ == "__main__":
-    pc = PointCloud('ENS_summer_2019/ca_sub_combined.img')
+    pc = PointCloud('Documents/research/ENS/ca_sub_combined.img')
     pc.Cartesian(311, 399)
-    pc.plot(system = "RAS")
+    #print(pc.cartesian_data)
+    #pc.plot(system = "RAS")
 
-    pc_uc = PointCloud('ENS_summer_2019/brain_2/eileen_brain2_segmentations/', combined = False)
+    pc_uc = PointCloud('Documents/research/ENS/brain_2/eileen_brain2_segmentations/', combined = False)
     pc_uc.Cartesian(311, 399)
-    pc_uc.plot(system = "RAS")
+
+    with open('PycharmProjects/hippocampus/dataframes/cartesian_pc_ras', 'wb') as output:
+        pickle.dump(pc_uc.cartesian_data_ras, output)
+
+    #pc_uc.plot(system = "RAS")

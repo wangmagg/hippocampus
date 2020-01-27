@@ -88,14 +88,64 @@ class Midsurface:
         else:
             data = self.pc.cartesian_data_ras
 
-        total = data.shape[0]
+        #total = data.shape[0]
+        total = data[0].unique().shape[0]
         slice_idxs = [math.floor(i) for i in np.linspace(0, total-1, num_slices)]
-        data_slices = data.iloc[slice_idxs]
+        #data_slices = data.iloc[slice_idxs]
+        data_slices = data.loc[data[0].isin(data[0].unique()[slice_idxs])]
         self.data_ds = data_slices
 
         return data_slices
 
     def _curvesUncombined(self, cartesian_data_ds):
+
+        curves_y = []
+        curves_z = []
+        bound_y = []
+        bound_z = []
+
+        for num, xval in enumerate(cartesian_data_ds[0].unique()):
+            fig = plt.figure(figsize=(12, 9))
+            ax = fig.add_subplot(111)
+
+            slice_data = cartesian_data_ds.loc[cartesian_data_ds[0] == xval]
+
+            ax.plot(slice_data.loc[slice_data['label'] == 'ca1'][1], slice_data.loc[slice_data['label'] == 'ca1'][2],
+                    color = 'orangered', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
+            ax.plot(slice_data.loc[slice_data['label'] == 'ca2'][1], slice_data.loc[slice_data['label'] == 'ca2'][2],
+                    color = 'darkorange', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
+            ax.plot(slice_data.loc[slice_data['label'] == 'ca3'][1], slice_data.loc[slice_data['label'] == 'ca3'][2],
+                    color = 'gold', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
+            ax.plot(slice_data.loc[slice_data['label'] == 'subiculum'][1], slice_data.loc[slice_data['label'] == 'subiculum'][2],
+                    color = 'firebrick', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
+
+            start_pt, = ax.plot(slice_data.iloc[0][1], slice_data.iloc[0][2], marker='o', markersize=4, color='blue')
+
+            linebuilder = Midsurface.LineBuilderUpdate(start_pt)
+            linebuilder.connect()
+            ax.set_title("Slice %d of %d" % (num, cartesian_data_ds[0].unique().shape[0] - 1))
+            plt.show()
+
+            curve_y, curve_z = linebuilder.points()
+            curves_y.append(curve_y)
+            curves_z.append(curve_z)
+            bound_y.append([curve_y[8], curve_y[13], curve_y[15]])
+            bound_z.append([curve_z[8], curve_z[13], curve_z[15]])
+
+        idx = cartesian_data_ds[0].unique()
+        curvesy_df = pd.DataFrame(curves_y, index= idx)
+        curvesz_df = pd.DataFrame(curves_z, index = idx)
+        boundy_df = pd.DataFrame(bound_y, index = idx)
+        boundz_df = pd.DataFrame(bound_z, index = idx)
+
+        self.curvesy = curvesy_df
+        self.curvesz = curvesz_df
+        self.boundy = boundy_df
+        self.boundz = boundz_df
+
+        return curvesy_df, curvesz_df
+
+    def _curvesUncombined_v0(self, cartesian_data_ds):
         """Manually select points from each slice to create mid-curves; for uncombined binary data files
 
             Args:
@@ -109,6 +159,8 @@ class Midsurface:
 
         curves_y = []
         curves_z = []
+        bound_y = []
+        bound_z = []
 
         for num, slice in enumerate(cartesian_data_ds.index):
 
@@ -129,12 +181,27 @@ class Midsurface:
             curve_y, curve_z = linebuilder.points()
             curves_y.append(curve_y)
             curves_z.append(curve_z)
+            bound_y.append([curve_y[8], curve_y[13], curve_y[15]])
+            bound_z.append([curve_z[8], curve_z[13], curve_z[15]])
 
         curvesy_df = pd.DataFrame(curves_y, index=cartesian_data_ds.index)
         curvesz_df = pd.DataFrame(curves_z, index=cartesian_data_ds.index)
+        boundy_df = pd.DataFrame(bound_y, index = cartesian_data_ds.index)
+        boundz_df = pd.DataFrame(bound_z, index = cartesian_data_ds.index)
 
         self.curvesy = curvesy_df
         self.curvesz = curvesz_df
+        self.boundy = boundy_df
+        self.boundz = boundz_df
+
+        with open("PycharmProjects/hippocampus/dataframes/test_curvesy", "wb") as output:
+            pickle.dump(curvesy_df, output)
+        with open("PycharmProjects/hippocampus/dataframes/test_curvesz", "wb") as output:
+            pickle.dump(curvesz_df, output)
+        with open("PycharmProjects/hippocampus/dataframes/test_boundy", "wb") as output:
+            pickle.dump(boundy_df, output)
+        with open("PycharmProjects/hippocampus/dataframes/test_boundz", "wb") as output:
+            pickle.dump(boundz_df, output)
 
         return curvesy_df, curvesz_df
 
@@ -201,6 +268,25 @@ class Midsurface:
 
         return curvesy_df, curvesz_df
 
+    def curves_cached(self, num_slices):
+        self.subsample(num_slices)
+
+        with open('PycharmProjects/hippocampus/dataframes/test_curvesy', 'rb') as input:
+            curvesy_df = pickle.load(input)
+        with open('PycharmProjects/hippocampus/dataframes/test_curvesz', 'rb') as input:
+            curvesz_df = pickle.load(input)
+        with open('PycharmProjects/hippocampus/dataframes/test_boundy', 'rb') as input:
+            boundy_df = pickle.load(input)
+        with open('PycharmProjects/hippocampus/dataframes/test_boundz', 'rb') as input:
+            boundz_df = pickle.load(input)
+
+        self.curvesy = curvesy_df
+        self.curvesz = curvesz_df
+        self.boundy = boundy_df
+        self.boundz = boundz_df
+
+        return curvesy_df, curvesz_df
+
     def plot_curves(self):
         """Plot selected mid-curve points in 3D
 
@@ -256,6 +342,7 @@ class Midsurface:
             coord[level, ..., 2] = zi
 
         self.usplines = coord
+        #self.pt_num = np.floor(num_points/self.pt_num)
 
         return coord
 
@@ -290,6 +377,77 @@ class Midsurface:
 
         return coord_interp
 
+    def _spline_v_first(self, num_points):
+
+        self.curvesy = self.curvesy.dropna(axis = 'columns')
+        coord = np.zeros((num_points, self.curvesy.shape[1], 3))
+
+        for i in range(self.curvesy.shape[1]):
+            y = np.array(self.curvesy[i])
+            z = np.array(self.curvesz[i])
+
+            y_knots = y[~np.isnan(y)]
+            z_knots = z[~np.isnan(z)]
+            x_knots = self.curvesy.index
+
+            #tck, u = interpolate.splprep([x_knots, z_knots], s=0)
+            #xi, zi = interpolate.splev(np.linspace(0, 1, num_points), tck)
+
+            #tck, u = interpolate.splprep([x_knots, y_knots], s=0)
+            #xi_other, yi = interpolate.splev(np.linspace(0, 1, num_points), tck)
+
+            tck, u = interpolate.splprep([x_knots, y_knots, z_knots], s=0)
+            xi, yi, zi = interpolate.splev(np.linspace(0, 1, num_points), tck)
+
+            coord[..., i, 0] = xi
+            coord[..., i, 1] = yi
+            coord[..., i, 2] = zi
+
+            self.vsplines = coord
+
+        return coord
+
+    def _spline_u_second(self, num_points):
+        coord = np.zeros((num_points, self.vsplines.shape[0], 3))
+
+        for i in range(self.vsplines.shape[0]):
+            y = np.array(self.vsplines[i, ..., 1])
+            z = np.array(self.vsplines[i, ..., 2])
+
+            tck, u = interpolate.splprep([y, z], s=0)
+            yi, zi = interpolate.splev(np.linspace(0, 1, num_points), tck)
+            x = np.repeat(self.vsplines[i, 0, 0], num_points)
+
+            coord[i, ..., 0] = x
+            coord[i, ..., 1] = yi
+            coord[i, ..., 2] = zi
+
+        self.surf = coord
+        # self.pt_num = np.floor(num_points/self.pt_num)
+
+        return coord
+    def _spline_bound(self, num_points):
+        coord_interp = np.zeros((num_points, self.boundy.shape[1], 3))
+
+        for i in range(self.boundy.shape[1]):
+            x_knots = np.array(self.boundy.index)
+            y_knots = np.array(self.boundy[i])
+            z_knots = np.array(self.boundz[i])
+
+            tck, u = interpolate.splprep([x_knots, z_knots], s=0)
+            xi, zi = interpolate.splev(np.linspace(0, 1, num_points), tck)
+
+            tck, u = interpolate.splprep([x_knots, y_knots], s=0)
+            xi_other, yi = interpolate.splev(np.linspace(0, 1, num_points), tck)
+
+            coord_interp[..., i, 0] = xi
+            coord_interp[..., i, 1] = yi
+            coord_interp[..., i, 2] = zi
+
+            self.bound = coord_interp
+
+        return coord_interp
+
     def surface(self, num_u, num_v):
         """Function invoked by user to generate interpolated surface
 
@@ -300,18 +458,21 @@ class Midsurface:
             Returns:
                 coord_interp: interpolated surface
         """
-        self._spline_u(num_u)
-        self._spline_v(num_v)
+        #self._spline_u(num_u)
+        #self._spline_v(num_v)
+        self._spline_v_first(num_v)
+        self._spline_u_second(num_u)
+        self._spline_bound(num_v)
 
         return self.surf
 
-    def _plot_splines_uncombined(self):
+    def _plot_splines_uncombined(self, splines):
         """Plot splines in u-axis overlayed on slices where original binary data was uncombined"""
 
         trace1 = go.Scatter3d(
-            x=self.usplines[..., 0].flatten(),
-            y=self.usplines[..., 1].flatten(),
-            z=self.usplines[..., 2].flatten(),
+            x= splines[..., 0].flatten(),
+            y= splines[..., 1].flatten(),
+            z= splines[..., 2].flatten(),
             mode='markers',
             marker=dict(
                 size=2,
@@ -340,8 +501,10 @@ class Midsurface:
         )
 
         data = [trace1, trace2]
+        labels = ['ca1', 'ca2', 'ca3', 'subiculum']
         colors = {'ca1': 'orangered', 'ca2': 'darkorange', 'ca3': 'gold', 'subiculum': 'firebrick'}
 
+        '''
         for col in self.data_ds.columns:
             trace = go.Scatter3d(
                 x=np.concatenate([self.data_ds[col][idx][0] for idx in self.data_ds.index]),
@@ -356,17 +519,35 @@ class Midsurface:
             )
 
             data.append(trace)
+        '''
+
+        for l in labels:
+            trace = go.Scatter3d(
+                x = self.data_ds.loc[self.data_ds['label'] == l][0],
+                y = self.data_ds.loc[self.data_ds['label'] == l][1],
+                z = self.data_ds.loc[self.data_ds['label'] == l][2],
+
+                mode='markers',
+                marker=dict(
+                    size=2,
+                    color=colors[l],
+                    opacity=0.5,
+                )
+
+            )
+
+            data.append(trace)
 
         fig = go.Figure(data=data)
         plotly.offline.plot(fig)
 
-    def _plot_splines_combined(self):
+    def _plot_splines_combined(self, splines):
         """Plot splines in u-axis overlayed on slices where original binary data was combined"""
 
         trace1 = go.Scatter3d(
-            x=self.usplines[..., 0].flatten(),
-            y=self.usplines[..., 1].flatten(),
-            z=self.usplines[..., 2].flatten(),
+            x=splines[..., 0].flatten(),
+            y=splines[..., 1].flatten(),
+            z=splines[..., 2].flatten(),
             mode='markers',
             marker=dict(
                 size=2,
@@ -426,15 +607,16 @@ class Midsurface:
         fig = go.Figure(data=data, layout = layout)
         plotly.offline.plot(fig)
 
-    def plot_splines(self):
+    def plot_splines(self, splines):
         """Function invoked by user to plot splines along u-axis"""
         if self.pc.comb:
-            self._plot_splines_combined()
+            self._plot_splines_combined(splines)
         else:
-            self._plot_splines_uncombined()
+            self._plot_splines_uncombined(splines)
 
     def plot_surface(self):
         """Function invoked by user to plot surface"""
+
         trace = go.Scatter3d(
             x=self.surf[..., 0].flatten(),
             y=self.surf[..., 1].flatten(),
@@ -450,18 +632,36 @@ class Midsurface:
 
         )
 
-        data = [trace]
+        trace2 = go.Scatter3d(
+            x = self.bound[..., 0].flatten(),
+            y = self.bound[..., 1].flatten(),
+            z = self.bound[..., 2].flatten(),
+
+            mode='markers',
+            marker=dict(
+                size=2,
+                opacity=1,
+                color='black'
+            )
+
+
+        )
+
+        data = [trace, trace2]
         fig = go.Figure(data=data)
         plotly.offline.plot(fig)
 
+
 if __name__ == "__main__":
-    pc = PointCloud('ENS_summer_2019/ca_sub_combined.img')
+    pc = PointCloud('Documents/research/ENS/brain_2/eileen_brain2_segmentations/', combined = False)
     pc.Cartesian(311, 399)
 
     ms = Midsurface(pc, system = "RAS")
     ms.curves(4)
+    #ms.curves_cached(4)
+
     surface = ms.surface(100, 100)
-    ms.plot_splines()
+    ms.plot_splines(ms.vsplines)
 
     #with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100_ras_biasedlow.df", "wb") as output:
     #    pickle.dump(surface, output)

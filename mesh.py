@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+from PointCloud import PointCloud
 from scipy.spatial import Delaunay
 import plotly
 import plotly.graph_objs as go
@@ -60,6 +61,75 @@ def meshSource(S):
     tV = torch.as_tensor(V, dtype = torch.float32)
 
     return tV, tF
+
+def subdivide(V, F):
+    nV = V.shape[0]
+    nF = F.shape[0]
+    F = F.detach().numpy()
+    V = V.detach().numpy()
+    E = np.vstack([np.transpose(np.vstack([F[:, 0], F[:, 1]])),
+                    np.transpose(np.vstack([F[:, 1], F[:, 2]])),
+                   np.transpose(np.vstack([F[:, 2], F[:, 0]]))
+                  ])
+
+    E = np.sort(E, 1)
+    E = np.unique(E, axis = 0)
+    nE = E.shape[0]
+    VE_idx = np.zeros(nE)
+
+    nV_new = nV + nE
+    nF_new = 4*nF
+
+    V_new = np.zeros((nV_new, 3))
+    F_new = np.zeros((nF_new, 3))
+
+    V_new[0:nV] = V
+    V_count = nV
+
+    for i in range(nF):
+        f = F[i]
+        e1 = [f[0], f[1]]
+        e2 = [f[1], f[2]]
+        e3 = [f[2], f[0]]
+
+        v1 = np.mean(V[e1], axis = 0)
+        v2 = np.mean(V[e2], axis = 0)
+        v3 = np.mean(V[e3], axis = 0)
+
+        e1_idx = np.nonzero((E[:, 0] == min(e1)) & (E[:, 1] == max(e1)))
+        if VE_idx[e1_idx] == 0:
+            V_new[V_count] = v1
+            v1_idx = V_count
+            VE_idx[e1_idx] = v1_idx
+            V_count += 1
+        else:
+            v1_idx = VE_idx[e1_idx]
+
+        e2_idx = np.nonzero((E[:, 0] == min(e2)) & (E[:, 1] == max(e2)))
+        if VE_idx[e2_idx] == 0:
+            V_new[V_count] = v2
+            v2_idx = V_count
+            VE_idx[e2_idx] = v2_idx
+            V_count += 1
+        else:
+            v2_idx = VE_idx[e2_idx]
+
+        e3_idx = np.nonzero((E[:, 0] == min(e3)) & (E[:, 1] == max(e3)))
+        if VE_idx[e3_idx] == 0:
+            V_new[V_count] = v3
+            v3_idx = V_count
+            VE_idx[e3_idx] = v3_idx
+            V_count += 1
+        else:
+            v3_idx = VE_idx[e3_idx]
+
+        F_new[4*i] = [f[0], v1_idx, v3_idx]
+        F_new[4*i + 1] = [f[1], v2_idx, v1_idx]
+        F_new[4*i + 2] = [f[2], v3_idx, v2_idx]
+        F_new[4*i + 3] = [v1_idx, v2_idx, v3_idx]
+
+    return torch.as_tensor(V_new, dtype = torch.float32), torch.as_tensor(F_new, dtype = torch.long)
+
 
 def meshSynthTarget(m, n, a, w):
     """Create simple synthetic target and midsurface for testing purposes.
@@ -264,7 +334,7 @@ def incidentFaceMap(num_points, FSj):
 
         Args:
             num_points (int): total number of vertices
-            FSj (int): total number of faces
+            FSj (array): array of faces
 
         Returns:
             index_map (dict): dictionary mapping a vertex to its incident faces (faces containing the vertex)
@@ -427,64 +497,6 @@ def joinFlip(F, m, n):
     
     return tFjoined
 
-def joinFlipSubdivided(F, m, n, t, edge_oddv_map):
-    """Compute faces for joined upper and lower surfaces for subdivided mesh, with orientation flipping.
-
-        Args:
-            F (torch tensor): faces of subdivided midsurface
-            m (int): number of vertices along u-axis of midsurface grid, before subdivision
-            n (int): number of vertices along v-axis of midsurface grid, before subdivision
-            t (int): total number of vertices of subdivided midsurface
-            edge_oddv_map (dict): maps each edge in the original midsurface to the index of the vertex placed on that edge
-                                    during subdivision. Ex: '[0 50]': 3000
-
-        Returns:
-            tFjoined (torch tensor): all faces for the joined surfaces
-    """
-
-    # Create faces for lower surface
-    lowerF = F.clone()
-    lowerF[:, 0] = F[:, 1]
-    lowerF[:, 1] = F[:, 0]
-
-    # Create faces for right border
-    upr_edgevtcs = m*np.arange(n) + m - 1
-    lowr_edgevtcs = upr_edgevtcs + t
-    
-    urk = [str(np.array([50*(i+1) - 1, 50*(i+2)-1])) for i in range(49)]  # all of the edges on the right border
-    upr_edgevtcs_sub = np.array([edge_oddv_map[k] for k in urk])
-    lowr_edgevtcs_sub = upr_edgevtcs_sub + t
-    
-    redgeFa = np.vstack([upr_edgevtcs[0:-1], lowr_edgevtcs[0:-1], lowr_edgevtcs_sub]).transpose()
-    redgeFb = np.vstack([lowr_edgevtcs_sub, upr_edgevtcs_sub, upr_edgevtcs[0:-1]]).transpose()
-    redgeFc = np.vstack([upr_edgevtcs_sub, lowr_edgevtcs_sub, lowr_edgevtcs[1:]]).transpose()
-    redgeFd = np.vstack([lowr_edgevtcs[1:], upr_edgevtcs[1:], upr_edgevtcs_sub]).transpose()
-    redgeF = np.vstack([redgeFa, redgeFb, redgeFc, redgeFd])
-
-    # Create faces for left border
-    upl_edgevtcs = m*np.arange(n)
-    lowl_edgevtcs = upl_edgevtcs + t
-
-    ulk = [str(np.array([50*(i+1), 50*i])) for i in range(49)] # all of the edges on the left border
-    upl_edgevtcs_sub = np.array([edge_oddv_map[k] for k in ulk])
-    lowl_edgevtcs_sub = upl_edgevtcs_sub + t
-    
-    ledgeFa = np.vstack([upl_edgevtcs[0:-1], lowl_edgevtcs[0:-1], lowl_edgevtcs_sub]).transpose()
-    ledgeFb = np.vstack([lowl_edgevtcs_sub, upl_edgevtcs_sub, upl_edgevtcs[0:-1]]).transpose()
-    ledgeFc = np.vstack([upl_edgevtcs_sub, lowl_edgevtcs_sub, lowl_edgevtcs[1:]]).transpose()
-    ledgeFd = np.vstack([lowl_edgevtcs[1:], upl_edgevtcs[1:], upl_edgevtcs_sub]).transpose()
-    ledgeF = np.vstack([ledgeFa, ledgeFb, ledgeFc, ledgeFd])
-    
-    ledgeF_flip = ledgeF.copy()
-    ledgeF_flip[:, 0] = ledgeF[:, 1]
-    ledgeF_flip[:, 1] = ledgeF[:, 0]
-
-    # Join all faces together
-    Fjoined = np.vstack([F, lowerF + t, redgeF, ledgeF_flip])
-    tFjoined = torch.as_tensor(Fjoined, dtype = torch.long)
-    
-    return tFjoined
-
 def generateSourceULfast(Qd, w, Fjpre, map):
     """Function called by user to generate upper and lower surfaces with constant w.
 
@@ -587,13 +599,96 @@ def flatten(mesh, m, n):
 
     return dugrid.flatten(), dvgrid.flatten()
 
+def kNN(VS, cd, nn = 5, subdivide = False, numV = 50):
+    if subdivide:
+        upperVS = np.vstack((VS[0:numV**2], VS[2*numV**2: numV**2 + (2*numV - 1)**2]))
+        lowerVS = np.vstack((VS[numV ** 2:2*numV**2], VS[numV ** 2 + (2 * numV - 1) ** 2: 2*(2*numV-1)**2]))
+    else:
+        upperVS = VS[0:int(VS.shape[0]/2)]
+        lowerVS = VS[int(VS.shape[0]/2):]
+
+    label_dict = {'subiculum': 0, 'ca1': 1, 'ca2': 2, 'ca3': 3}
+    labels = np.zeros((upperVS.shape[0], len(label_dict)))
+
+    for c, pt in enumerate(upperVS):
+        d_idx = np.argsort(np.linalg.norm(cd[[0, 1, 2]] - pt, axis = 1))
+        dn_idx = d_idx[0:nn]
+        l = cd.iloc[dn_idx]['label']
+
+        for k in label_dict.keys():
+            nk = np.sum(l == k)
+            labels[c][label_dict[k]] = nk
+
+        if c%500 == 0:
+            print(c)
+
+    for c, pt in enumerate(lowerVS):
+        d_idx = np.argsort(np.linalg.norm(cd[[0, 1, 2]] - pt, axis=1))
+        dn_idx = d_idx[0:nn]
+        l = cd.iloc[dn_idx]['label']
+
+        for k in label_dict.keys():
+            nk = np.sum(l == k)
+            labels[c][label_dict[k]] += nk
+
+        if c%500 == 0:
+            print(c)
+
+    label_weights = labels/(2*nn)
+
+    return labels, label_weights
+
+
+def surfaceIsocontour(V, F, lw, reg, t=0.6):
+    b = np.zeros((3 * F.shape[0], 3))
+    c = 0
+
+    for f in F:
+        v1, v2, v3 = V[f[0]], V[f[1]], V[f[2]]
+        l1, l2, l3 = lw[f[0]][reg], lw[f[1]][reg], lw[f[2]][reg]
+        a = [l1 > t, l2 > t, l3 > t]
+
+        if a == [1, 0, 0] or a == [0, 1, 1]:
+            d = abs(l1 - t) / abs(l1 - l2)
+            b1 = v1 * (1 - d) + v2 * d
+            d = abs(l1 - t) / abs(l1 - l3)
+            b2 = v1 * (1 - d) + v3 * d
+            b[c] = b1
+            b[c + 1] = b2
+            b[c + 2] = None
+            c += 3
+
+        elif a == [0, 1, 0] or a == [1, 0, 1]:
+            d = abs(l2 - t) / abs(l2 - l1)
+            b1 = v2 * (1 - d) + v1 * d
+            d = abs(l2 - t) / abs(l2 - l3)
+            b2 = v2 * (1 - d) + v3 * d
+            b[c] = b1
+            b[c + 1] = b2
+            b[c + 2] = None
+            c += 3
+
+        elif a == [0, 0, 1] or a == [1, 1, 0]:
+            d = abs(l3 - t) / abs(l3 - l1)
+            b1 = v3 * (1 - d) + v1 * d
+            d = abs(l3 - t) / abs(l3 - l2)
+            b2 = v3 * (1 - d) + v2 * d
+            b[c] = b1
+            b[c + 1] = b2
+            b[c + 2] = None
+            c += 3
+
+        else:
+            continue
+
+    return b[0:c, :]
 
 def plot_mesh(V, F, color):
 
     fig_mesh = FF.create_trisurf(x=V[:, 0].detach().numpy(),
                                  y=V[:, 1].detach().numpy(),
                                  z=V[:, 2].detach().numpy(),
-                                 colormap=color,
+                                 colormap = color,
                                  simplices=F)
 
     fig_mesh['data'][0].update(opacity=1)
@@ -641,6 +736,7 @@ def visualize(V, F, color, normals = False):
 
 
 if __name__ == "__main__":
+    '''
     with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100_ras.df", "rb") as input:
         surface = pickle.load(input)
 
@@ -655,7 +751,8 @@ if __name__ == "__main__":
     facemap = incidentFaceMap(2 * 50 * 50, Fjoined)
     VS = generateSourceULW(Qd, W, Fjoined, facemap)
     CS, NS = compCN(VS, Fjoined)
-
+    '''
+    '''
     layout = go.Layout(
         scene=dict(
             xaxis=dict(
@@ -705,4 +802,127 @@ if __name__ == "__main__":
                                 figT.data[0], figT.data[1], figT.data[2]], layout = layout)
 
     plotly.offline.plot(figcomb)
+    '''
+    with open("PycharmProjects/hippocampus/dataframes/Q_opt_RAS", "rb") as input:
+        Q = pickle.load(input)
+    with open("PycharmProjects/hippocampus/dataframes/FS_opt_RAS", "rb") as input:
+        F = pickle.load(input)
+    with open("PycharmProjects/hippocampus/dataframes/wu_opt", "rb") as input:
+        wu = pickle.load(input)
+    with open("PycharmProjects/hippocampus/dataframes/wl_opt", "rb") as input:
+        wl = pickle.load(input)
+    with open("PycharmProjects/hippocampus/dataframes/cartesian_pc_ras", "rb") as input:
+        cdr = pickle.load(input)
 
+    Qd = doubleQ(Q)
+    W = 0.48 * torch.ones(50 ** 2, 1)
+
+    Q_s, F_s = subdivide(Q, F)
+    Fjoined = joinFlip(F, 50, 50)
+    facemap = incidentFaceMap(2 * 50 * 50, Fjoined)
+    VS = generateSourceULW(Qd, W, Fjoined, facemap)
+    CS, NS = compCN(VS, Fjoined)
+
+
+    VS_s, Fjoined_s = subdivide(VS, Fjoined)
+
+    l, lw = kNN(VS_s.numpy(), cdr, 5, subdivide = True)
+    bd_0 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 0, t=0.8)
+    bd_1 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 1, t=0.8)
+    bd_2 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 2, t=0.8)
+    bd_3 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 3, t=0.8)
+
+    trace1 = go.Scatter3d(
+        x = bd_0[:, 0],
+        y = bd_0[:, 1],
+        z = bd_0[:, 2],
+
+        mode='markers + lines',
+        marker=dict(
+            size=2,
+            color='black',
+            opacity=0,
+        ),
+        line=dict(
+            width=3,
+            color="black"
+        )
+    )
+
+    trace2 = go.Scatter3d(
+        x = bd_1[:, 0],
+        y = bd_1[:, 1],
+        z = bd_1[:, 2],
+
+        mode='markers + lines',
+        marker=dict(
+            size=2,
+            color='blue',
+            opacity=0,
+        ),
+        line=dict(
+            width=3,
+            color="blue"
+        )
+    )
+
+
+    trace3 = go.Scatter3d(
+        x = bd_2[:, 0],
+        y = bd_2[:, 1],
+        z = bd_2[:, 2],
+
+        mode='markers + lines',
+        marker=dict(
+            size=2,
+            color='green',
+            opacity=0,
+        ),
+        line=dict(
+            width=3,
+            color="green"
+        )
+    )
+
+
+    trace4 = go.Scatter3d(
+        x = bd_3[:, 0],
+        y = bd_3[:, 1],
+        z = bd_3[:, 2],
+
+        mode='markers + lines',
+        marker=dict(
+            size=2,
+            color='purple',
+            opacity=0,
+        ),
+        line=dict(
+            width=3,
+            color="purple"
+        )
+    )
+
+
+    Q = Q.detach().numpy()
+
+    cl = np.argmax(l, axis = 1)
+    c_dict = {0:'firebrick', 1:'orangered', 2:'darkorange', 3:'gold'}
+    cls = [c_dict[i] for i in cl]
+
+    trace5 = go.Scatter3d(
+        x = Q_s[:, 0],
+        y = Q_s[:, 1],
+        z = Q_s[:, 2],
+
+        mode = 'markers',
+        marker=dict(
+            size=2,
+            color = cls,
+            opacity=0,
+        )
+
+    )
+
+    data = [trace1, trace2, trace3, trace4, trace5]
+    fig = go.Figure(data = data)
+    plotly.offline.plot(fig)

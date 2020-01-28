@@ -63,44 +63,6 @@ class PointCloud:
 
         return data_df, data_df_ras
 
-    def _arrangeBySlice(self, xmin, xmax, data_df, data_df_ras):
-        """Select section from Cartesian data that lies between the desired slice bounds.
-         Arrange dataframe for selected section so that each row corresponds to a single coronal cross-section.
-
-            Args:
-                xmin (int): Voxel space x-coordinate of first slice in desired section
-                xmax (int): Voxel space x-coordinate of last slice in desired section
-
-            Returns:
-                df_arranged (pandas): data from selected section arranged by slice, Voxel space
-                df_arranged_ras (pandas): data from selected section arranged by slice, RAS space
-        """
-
-        #Define range of x-coordinates (the x-coordinate is constant across a coronal slice)
-        xvals = np.arange(xmin, xmax)
-        index = xvals
-        index_ras = np.zeros_like(xvals, dtype = float)
-
-        #Initialize empty dataframes to store arranged slices
-        df_arranged = pd.DataFrame(index = index, columns = [0])
-        df_arranged_ras = pd.DataFrame(index = index, columns = [0])
-
-        #Locate "slices" in dataframe where the x-value is constant and store in new dataframes
-        for i, x in enumerate(xvals):
-
-            df = data_df.loc[data_df[0] == x]
-            dfidx = df.index.tolist()
-            rasdf = data_df_ras.loc[dfidx]
-            index_ras[i] = list(rasdf[0])[0]
-
-            df_arranged[0][x] = [list(df[0]), list(df[1]), list(df[2])]
-            df_arranged_ras[0][x] = [list(rasdf[0]), list(rasdf[1]), list(rasdf[2])]
-
-        df_arranged_ras.index = index_ras
-
-        return df_arranged, df_arranged_ras
-
-
     def _joinCartesian(self, xmin, xmax):
         """Convert all binary files in path to Cartesian space and select desired section
             Args:
@@ -151,7 +113,8 @@ class PointCloud:
 
         if self.comb:
             data, data_ras = self._toCartesian(self.path)
-            self.cartesian_data, self.cartesian_data_ras = self._arrangeBySlice(xmin, xmax, data, data_ras)
+            self.cartesian_data = data.loc[(data[0] >= xmin) & (data[0] <= xmax)]
+            self.cartesian_data_ras = data_ras.loc[self.cartesian_data.index]
 
         else:
             self.cartesian_data, self.cartesian_data_ras = self._joinCartesian(xmin, xmax)
@@ -173,24 +136,24 @@ class PointCloud:
         colors = {'ca1': 'orangered', 'ca2': 'darkorange', 'ca3': 'gold', 'subiculum': 'firebrick'}
         data = []
 
-        for col in cartesian_data.columns:
-            trace = go.Scatter3d(
-                x=np.concatenate([cartesian_data[col][idx][0] for idx in cartesian_data.index]),
-                y=np.concatenate([cartesian_data[col][idx][1] for idx in cartesian_data.index]),
-                z=np.concatenate([cartesian_data[col][idx][2] for idx in cartesian_data.index]),
-                mode='markers',
-                marker=dict(
-                    size=2,
-                    color=colors[col],
-                    opacity=1,
-                    line=dict(
-                        color='black',
-                        width=0.5
-                    )
+        #for col in cartesian_data.columns:
+        trace = go.Scatter3d(
+            x=cartesian_data[0],
+            y=cartesian_data[1],
+            z=cartesian_data[2],
+            mode='markers',
+            marker=dict(
+                size=2,
+                color=[colors[cartesian_data['label'][idx]] for idx in cartesian_data.index],
+                opacity=1,
+                line=dict(
+                    color='black',
+                    width=0.5
                 )
             )
+        )
 
-            data.append(trace)
+        data.append(trace)
 
         layout = go.Layout(
             scene=dict(
@@ -214,9 +177,12 @@ class PointCloud:
         data = []
 
         trace = go.Scatter3d(
-            x=np.concatenate([cartesian_data[0][idx][0] for idx in cartesian_data.index]),
-            y=np.concatenate([cartesian_data[0][idx][1] for idx in cartesian_data.index]),
-            z=np.concatenate([cartesian_data[0][idx][2] for idx in cartesian_data.index]),
+            #x=np.concatenate([cartesian_data[0][idx] for idx in cartesian_data.index]),
+            #y=np.concatenate([cartesian_data[1][idx] for idx in cartesian_data.index]),
+            #z=np.concatenate([cartesian_data[2][idx] for idx in cartesian_data.index]),
+            x = cartesian_data[0],
+            y = cartesian_data[1],
+            z = cartesian_data[2],
             mode='markers',
             marker=dict(
                 size=2,
@@ -270,15 +236,17 @@ class PointCloud:
 
 
 if __name__ == "__main__":
-    pc = PointCloud('Documents/research/ENS/ca_sub_combined.img')
+    pc = PointCloud('hippocampus/BrainData/brain2/caSubBrain2.img')
     pc.Cartesian(311, 399)
-    #print(pc.cartesian_data)
-    #pc.plot(system = "RAS")
+    print(pc.cartesian_data_ras)
+    pc.plot(system = "RAS")
 
-    pc_uc = PointCloud('Documents/research/ENS/brain_2/eileen_brain2_segmentations/', combined = False)
+    pc_uc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_2/eileen_brain2_segmentations/', combined = False)
     pc_uc.Cartesian(311, 399)
+    pc_uc.plot(system = "RAS")
+    print(pc_uc.cartesian_data_ras)
 
-    with open('PycharmProjects/hippocampus/dataframes/cartesian_pc_ras', 'wb') as output:
-        pickle.dump(pc_uc.cartesian_data_ras, output)
+    #with open('PycharmProjects/hippocampus/dataframes/cartesian_pc_ras', 'wb') as output:
+        #pickle.dump(pc_uc.cartesian_data_ras, output)
 
     #pc_uc.plot(system = "RAS")

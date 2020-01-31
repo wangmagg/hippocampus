@@ -271,19 +271,13 @@ class Midsurface:
     def curves_cached(self, num_slices):
         self.subsample(num_slices)
 
-        with open('PycharmProjects/hippocampus/dataframes/test_curvesy', 'rb') as input:
+        with open('/hippocampus/thicknessMap/dataframes/test_curvesy', 'rb') as input:
             curvesy_df = pickle.load(input)
-        with open('PycharmProjects/hippocampus/dataframes/test_curvesz', 'rb') as input:
+        with open('/hippocampus/thicknessMap/dataframes/test_curvesz', 'rb') as input:
             curvesz_df = pickle.load(input)
-        with open('PycharmProjects/hippocampus/dataframes/test_boundy', 'rb') as input:
-            boundy_df = pickle.load(input)
-        with open('PycharmProjects/hippocampus/dataframes/test_boundz', 'rb') as input:
-            boundz_df = pickle.load(input)
 
         self.curvesy = curvesy_df
         self.curvesz = curvesz_df
-        self.boundy = boundy_df
-        self.boundz = boundz_df
 
         return curvesy_df, curvesz_df
 
@@ -458,11 +452,11 @@ class Midsurface:
             Returns:
                 coord_interp: interpolated surface
         """
-        #self._spline_u(num_u)
-        #self._spline_v(num_v)
-        self._spline_v_first(num_v)
-        self._spline_u_second(num_u)
-        self._spline_bound(num_v)
+        self._spline_u(num_u)
+        self._spline_v(num_v)
+        #self._spline_v_first(num_v)
+        #self._spline_u_second(num_u)
+        #self._spline_bound(num_v)
 
         return self.surf
 
@@ -632,28 +626,13 @@ class Midsurface:
 
         )
 
-        trace2 = go.Scatter3d(
-            x = self.bound[..., 0].flatten(),
-            y = self.bound[..., 1].flatten(),
-            z = self.bound[..., 2].flatten(),
-
-            mode='markers',
-            marker=dict(
-                size=2,
-                opacity=1,
-                color='black'
-            )
-
-
-        )
-
-        data = [trace, trace2]
+        data = [trace]
         fig = go.Figure(data=data)
         plotly.offline.plot(fig)
 
 
 if __name__ == "__main__":
-    pc = PointCloud('Documents/research/ENS/brain_2/eileen_brain2_segmentations/', combined = False)
+    pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_2/eileen_brain2_segmentations/', combined = False)
     pc.Cartesian(311, 399)
 
     ms = Midsurface(pc, system = "RAS")
@@ -661,7 +640,7 @@ if __name__ == "__main__":
     #ms.curves_cached(4)
 
     surface = ms.surface(100, 100)
-    ms.plot_splines(ms.vsplines)
+    ms.plot_splines(ms.usplines)
 
     #with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100_ras_biasedlow.df", "wb") as output:
     #    pickle.dump(surface, output)

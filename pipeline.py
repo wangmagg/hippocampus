@@ -1,27 +1,28 @@
-import PointCloud
-import Midsurface
+from PointCloud import PointCloud
+from Midsurface import Midsurface
 import mesh
 import Optimization
 import torch
-
+import pickle
 from plotly.offline import plot
 
 """Example pipeline from reading of data to completion of optimization """
 
 # Read binary data
-pc = PointCloud('ENS_summer_2019/ca_sub_combined.img')
+pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_2/eileen_brain2_segmentations/', combined = False)
 pc.Cartesian(311, 399, system = "RAS")
 
 # Create midsurface
-ms = Midsurface(pc, system = "RAS")
-ms.curves(4)
-surface = ms.surface(100, 100)
-
-ms.plot_splines()
-ms.plot_surface()
+#ms = Midsurface(pc, system = "RAS")
+#ms.curves(4)
+#source = ms.surface(100, 100)
+with open('hippocampus/thicknessMap/dataframes/spline_splines_4_100_ras.df', 'rb') as input:
+    source = pickle.load(input)
+#ms.plot_splines(ms.usplines)
+#ms.plot_surface()
 
 # Create target mesh
-VH, FH = mesh.meshTarget('ENS_summer_2019/ca_sub_combined.img', 311, 399, system = "RAS")
+VH, FH = mesh.meshTarget('hippocampus/BrainData/brain2/caSubBrain2.img', 311, 399, system = "RAS")
 
 # Optimize midsurface
 m = 50

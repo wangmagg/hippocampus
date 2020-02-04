@@ -13,6 +13,8 @@ from skimage import measure
 import torch
 import time
 
+import sys
+
 """Collection of functions for mesh operations"""
 
 def downsample(S, num_v, num_u):
@@ -412,8 +414,8 @@ def surfaceULnonsymm(VSj, Wu, Wl, index_map, N):
 
     for i in range(int(VSj.shape[0] / 2)):
         nN = N[index_map[i]].sum(dim=0) / sumAreas(N[index_map[i]])
-        VSj[i + int(VSj.shape[0] / 2)] = VSj[i] - Wu[i] * nN
-        VSj[i] = VSj[i] + Wl[i] * nN
+        VSj[i + int(VSj.shape[0] / 2)] = VSj[i] - Wl[i] * nN
+        VSj[i] = VSj[i] + Wu[i] * nN
 
     return VSj
 
@@ -599,30 +601,12 @@ def flatten(mesh, m, n):
 
     return dugrid.flatten(), dvgrid.flatten()
 
-def kNN(VS, cd, nn = 5, subdivide = False, numV = 50):
-    if subdivide:
-        upperVS = np.vstack((VS[0:numV**2], VS[2*numV**2: numV**2 + (2*numV - 1)**2]))
-        lowerVS = np.vstack((VS[numV ** 2:2*numV**2], VS[numV ** 2 + (2 * numV - 1) ** 2: 2*(2*numV-1)**2]))
-    else:
-        upperVS = VS[0:int(VS.shape[0]/2)]
-        lowerVS = VS[int(VS.shape[0]/2):]
+def kNN(Q, cd, nn = 5, subdivide = False, numV = 50):
 
     label_dict = {'subiculum': 0, 'ca1': 1, 'ca2': 2, 'ca3': 3}
-    labels = np.zeros((upperVS.shape[0], len(label_dict)))
+    labels = np.zeros((Q.shape[0], len(label_dict)))
 
-    for c, pt in enumerate(upperVS):
-        d_idx = np.argsort(np.linalg.norm(cd[[0, 1, 2]] - pt, axis = 1))
-        dn_idx = d_idx[0:nn]
-        l = cd.iloc[dn_idx]['label']
-
-        for k in label_dict.keys():
-            nk = np.sum(l == k)
-            labels[c][label_dict[k]] = nk
-
-        if c%500 == 0:
-            print(c)
-
-    for c, pt in enumerate(lowerVS):
+    for c, pt in enumerate(Q):
         d_idx = np.argsort(np.linalg.norm(cd[[0, 1, 2]] - pt, axis=1))
         dn_idx = d_idx[0:nn]
         l = cd.iloc[dn_idx]['label']
@@ -631,10 +615,10 @@ def kNN(VS, cd, nn = 5, subdivide = False, numV = 50):
             nk = np.sum(l == k)
             labels[c][label_dict[k]] += nk
 
-        if c%500 == 0:
+        if c % 500 == 0:
             print(c)
 
-    label_weights = labels/(2*nn)
+    label_weights = labels/(nn)
 
     return labels, label_weights
 
@@ -734,74 +718,36 @@ def visualize(V, F, color, normals = False):
 
     return fig
 
+def toByu():
+    with open(sys.argv[1], "rb") as input:
+        V = pickle.load(input)
+
+    with open(sys.argv[2], "rb") as input:
+        F = pickle.load(input)
+
+    file = open(sys.argv[3], "w")
+
+    num_points = V.shape[0]
+    num_faces = F.shape[0]
+
+    file.write("1 %d %d %d \n" % (num_points, num_faces, num_faces*3))
+    file.write("1 %d \n" % num_faces)
+
+    print(V)
+    for v in V:
+        file.write("%f %f %f \n" % (v[0], v[1], v[2]))
+
+    for i,f in enumerate(F):
+        if i == num_faces - 1:
+            file.write("%d %d %d" % (f[0], f[1], -1 * f[2]))
+        else:
+            file.write("%d %d %d \n" % (f[0], f[1], -1*f[2]))
+
+    file.close()
+
 
 if __name__ == "__main__":
-    '''
-    with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100_ras.df", "rb") as input:
-        surface = pickle.load(input)
 
-    surface = downsample(surface, 50, 50)
-    W = 0.48*torch.ones(50**2, 1)
-
-    Q, F = meshSource(surface)
-    C, N = compCN(Q, F)
-    Qd = doubleQ(Q)
-
-    Fjoined = joinFlip(F, 50, 50)
-    facemap = incidentFaceMap(2 * 50 * 50, Fjoined)
-    VS = generateSourceULW(Qd, W, Fjoined, facemap)
-    CS, NS = compCN(VS, Fjoined)
-    '''
-    '''
-    layout = go.Layout(
-        scene=dict(
-            xaxis=dict(
-                title='Anterior-Posterior (mm)'),
-            yaxis=dict(
-                title='Left-Right (mm)'),
-            zaxis=dict(
-                title='Superior-Inferior (mm)')
-        )
-    )
-
-    figMS = visualize(Q, F, 'Reds')
-    figMSonly = go.Figure(data = [figMS.data[0], figMS.data[1], figMS.data[2]], layout = layout)
-    plotly.offline.plot(figMSonly)
-
-    figS = visualize(VS, Fjoined, 'Blues')
-    figSonly = go.Figure(data = [figS.data[0], figS.data[1], figS.data[2]], layout = layout)
-    plotly.offline.plot(figSonly)
-
-    figMS_S = go.Figure(data = [figMS.data[0], figMS.data[1], figMS.data[2],
-                                figS.data[0], figS.data[1], figS.data[2]], layout = layout)
-    plotly.offline.plot(figMS_S)
-
-    img = "ENS_summer_2019/ca_sub_combined.img"
-    #VT, FT, CT, NT = generateTarget(img, 311, 399, system = "RAS")
-
-    #with open("PycharmProjects/hippocampus/dataframes/targetVds_ras", "wb") as output:
-        #pickle.dump(VT, output)
-
-    #with open("PycharmProjects/hippocampus/dataframes/targetFds_ras", "wb") as output:
-        #pickle.dump(FT, output)
-
-    with open("PycharmProjects/hippocampus/dataframes/targetVds_ras", "rb") as input:
-        VT = pickle.load(input)
-
-    with open("PycharmProjects/hippocampus/dataframes/targetFds_ras", "rb") as input:
-        FT = pickle.load(input)
-
-    figT = visualize(VT, FT, 'Portland', normals = False)
-
-    figTonly = go.Figure(data = [figT.data[0], figT.data[1], figT.data[2]], layout = layout)
-
-    plotly.offline.plot(figTonly)
-    
-    figcomb = go.Figure(data = [figMS.data[0], figMS.data[1], figMS.data[2],
-                                figS.data[0], figS.data[1], figS.data[2],
-                                figT.data[0], figT.data[1], figT.data[2]], layout = layout)
-
-    plotly.offline.plot(figcomb)
     '''
     with open("PycharmProjects/hippocampus/dataframes/Q_opt_RAS", "rb") as input:
         Q = pickle.load(input)
@@ -826,7 +772,7 @@ if __name__ == "__main__":
 
     VS_s, Fjoined_s = subdivide(VS, Fjoined)
 
-    l, lw = kNN(VS_s.numpy(), cdr, 5, subdivide = True)
+    l, lw = kNN(Q_s, cdr, 5, subdivide = True)
     bd_0 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 0, t=0.8)
     bd_1 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 1, t=0.8)
     bd_2 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 2, t=0.8)
@@ -902,9 +848,6 @@ if __name__ == "__main__":
         )
     )
 
-
-    Q = Q.detach().numpy()
-
     cl = np.argmax(l, axis = 1)
     c_dict = {0:'firebrick', 1:'orangered', 2:'darkorange', 3:'gold'}
     cls = [c_dict[i] for i in cl]
@@ -926,3 +869,6 @@ if __name__ == "__main__":
     data = [trace1, trace2, trace3, trace4, trace5]
     fig = go.Figure(data = data)
     plotly.offline.plot(fig)
+    '''
+
+    toByu()

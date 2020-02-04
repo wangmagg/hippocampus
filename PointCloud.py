@@ -63,7 +63,7 @@ class PointCloud:
 
         return data_df, data_df_ras
 
-    def _joinCartesian(self, xmin, xmax):
+    def _joinCartesian(self, min, max, axis = 0):
         """Convert all binary files in path to Cartesian space and select desired section
             Args:
                 xmin (int): Voxel space x-coordinate of first slice in desired section
@@ -96,12 +96,12 @@ class PointCloud:
         #data_img_ras_df = pd.DataFrame(data_img_ras)
         data_img_df = pd.concat(data_img_list, ignore_index = True)
         data_img_ras_df = pd.concat(data_img_ras_list, ignore_index = True)
-        data_img_df = data_img_df.loc[(data_img_df[0] >= xmin) & (data_img_df[0] <= xmax)]
+        data_img_df = data_img_df.loc[(data_img_df[axis] >= min) & (data_img_df[axis] <= max)]
         data_img_ras_df = data_img_ras_df.loc[data_img_df.index]
 
         return data_img_df, data_img_ras_df
 
-    def Cartesian(self, xmin, xmax, system = "voxel"):
+    def Cartesian(self, min, max, axis = 0, system = "voxel"):
         """
         Public method invoked by user to perform conversion from binary data to Cartesian space.
 
@@ -113,11 +113,11 @@ class PointCloud:
 
         if self.comb:
             data, data_ras = self._toCartesian(self.path)
-            self.cartesian_data = data.loc[(data[0] >= xmin) & (data[0] <= xmax)]
+            self.cartesian_data = data.loc[(data[axis] >= min) & (data[axis] <= max)]
             self.cartesian_data_ras = data_ras.loc[self.cartesian_data.index]
 
         else:
-            self.cartesian_data, self.cartesian_data_ras = self._joinCartesian(xmin, xmax)
+            self.cartesian_data, self.cartesian_data_ras = self._joinCartesian(min, max)
 
         if system == "voxel":
             return self.cartesian_data

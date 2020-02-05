@@ -72,7 +72,7 @@ class PointCloud:
                 data_img_df (pandas): Voxel space Cartesian data from desired section
                 data_img_ras_df (pandas): RAS space Cartesian data from desired section
         """
-        img_files = ['ca1', 'ca2', 'ca3', 'subiculum']
+        img_files = ['ca1', 'ca2', 'ca3', 'presubiculum','subiculum','parasubiculum']
 
         #Temporary holding dictionaries for data from each file
         #data_img = {'ca1': [], 'ca2': [], 'ca3': [], 'subiculum': []}
@@ -117,7 +117,7 @@ class PointCloud:
             self.cartesian_data_ras = data_ras.loc[self.cartesian_data.index]
 
         else:
-            self.cartesian_data, self.cartesian_data_ras = self._joinCartesian(min, max)
+            self.cartesian_data, self.cartesian_data_ras = self._joinCartesian(min, max, axis)
 
         if system == "voxel":
             return self.cartesian_data
@@ -133,7 +133,7 @@ class PointCloud:
             Args:
                 cartesian_data (pandas): dataframe with Cartesian data
         """
-        colors = {'ca1': 'orangered', 'ca2': 'darkorange', 'ca3': 'gold', 'subiculum': 'firebrick'}
+        colors = {'ca1': 'pink', 'ca2': 'red', 'ca3': 'gold', 'subiculum': 'fuchsia', 'presubiculum':'darkviolet', 'parasubiculum':'indigo'}
         data = []
 
         #for col in cartesian_data.columns:
@@ -236,16 +236,16 @@ class PointCloud:
 
 
 if __name__ == "__main__":
-    '''
-    pc = PointCloud('hippocampus/BrainData/brain2/caSubBrain2.img')
-    pc.Cartesian(311, 399)
+
+    pc = PointCloud('hippocampus/BrainData/brain3/caSubBrain3.img')
+    pc.Cartesian(307,455, axis = 1)
     print(pc.cartesian_data_ras)
     pc.plot(system = "RAS")
-    '''
+
 
     pc_uc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/', combined = False)
     #pc_uc.Cartesian(311, 399)
-    pc_uc.Cartesian(0, float("inf"))
+    pc_uc.Cartesian(307, 455, axis = 1)
     pc_uc.plot(system = "RAS")
     print(pc_uc.cartesian_data_ras)
 

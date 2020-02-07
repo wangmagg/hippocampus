@@ -71,7 +71,7 @@ class Midsurface:
         self.pc = pointcloud
         self.sys = system
 
-    def subsample(self, num_slices):
+    def subsample(self, num_slices, axis = 0):
         """Reduce number of slices by subsampling.
 
             Args:
@@ -89,59 +89,71 @@ class Midsurface:
             data = self.pc.cartesian_data_ras
 
         #total = data.shape[0]
-        total = data[0].unique().shape[0]
+        print(data)
+        total = data[axis].unique().shape[0]
         slice_idxs = [math.floor(i) for i in np.linspace(0, total-1, num_slices)]
         #data_slices = data.iloc[slice_idxs]
-        data_slices = data.loc[data[0].isin(data[0].unique()[slice_idxs])]
+        data_slices = data.loc[data[axis].isin(data[axis].unique()[slice_idxs])]
         self.data_ds = data_slices
 
         return data_slices
 
-    def _curvesUncombined(self, cartesian_data_ds):
+    def _curvesUncombined(self, cartesian_data_ds, axis = 0):
 
         curves_y = []
         curves_z = []
         bound_y = []
         bound_z = []
 
-        for num, xval in enumerate(cartesian_data_ds[0].unique()):
+        curve_axes = []
+        for i in range(3):
+            if i != axis:
+                curve_axes.append(i)
+
+        for num, xval in enumerate(cartesian_data_ds[axis].unique()):
             fig = plt.figure(figsize=(12, 9))
             ax = fig.add_subplot(111)
 
-            slice_data = cartesian_data_ds.loc[cartesian_data_ds[0] == xval]
+            slice_data = cartesian_data_ds.loc[cartesian_data_ds[axis] == xval]
 
-            ax.plot(slice_data.loc[slice_data['label'] == 'ca1'][1], slice_data.loc[slice_data['label'] == 'ca1'][2],
-                    color = 'orangered', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
-            ax.plot(slice_data.loc[slice_data['label'] == 'ca2'][1], slice_data.loc[slice_data['label'] == 'ca2'][2],
-                    color = 'darkorange', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
-            ax.plot(slice_data.loc[slice_data['label'] == 'ca3'][1], slice_data.loc[slice_data['label'] == 'ca3'][2],
+            ax.plot(slice_data.loc[slice_data['label'] == 'ca1'][curve_axes[0]], slice_data.loc[slice_data['label'] == 'ca1'][curve_axes[1]],
+                    color = 'pink', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
+            ax.plot(slice_data.loc[slice_data['label'] == 'ca2'][curve_axes[0]], slice_data.loc[slice_data['label'] == 'ca2'][curve_axes[1]],
+                    color = 'red', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
+            ax.plot(slice_data.loc[slice_data['label'] == 'ca3'][curve_axes[0]], slice_data.loc[slice_data['label'] == 'ca3'][curve_axes[1]],
                     color = 'gold', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
-            ax.plot(slice_data.loc[slice_data['label'] == 'subiculum'][1], slice_data.loc[slice_data['label'] == 'subiculum'][2],
-                    color = 'firebrick', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
+            ax.plot(slice_data.loc[slice_data['label'] == 'subiculum'][curve_axes[0]], slice_data.loc[slice_data['label'] == 'subiculum'][curve_axes[1]],
+                    color = 'fuchsia', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
+            ax.plot(slice_data.loc[slice_data['label'] == 'presubiculum'][curve_axes[0]],
+                    slice_data.loc[slice_data['label'] == 'presubiculum'][curve_axes[1]],
+                    color='darkviolet', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
+            ax.plot(slice_data.loc[slice_data['label'] == 'parasubiculum'][curve_axes[0]],
+                    slice_data.loc[slice_data['label'] == 'parasubiculum'][curve_axes[1]],
+                    color='indigo', marker='o', markersize=2, markerfacecolor='None', linestyle="None")
 
             start_pt, = ax.plot(slice_data.iloc[0][1], slice_data.iloc[0][2], marker='o', markersize=4, color='blue')
 
             linebuilder = Midsurface.LineBuilderUpdate(start_pt)
             linebuilder.connect()
-            ax.set_title("Slice %d of %d" % (num, cartesian_data_ds[0].unique().shape[0] - 1))
+            ax.set_title("Slice %d of %d" % (num, cartesian_data_ds[axis].unique().shape[0] - 1))
             plt.show()
 
             curve_y, curve_z = linebuilder.points()
             curves_y.append(curve_y)
             curves_z.append(curve_z)
-            bound_y.append([curve_y[8], curve_y[13], curve_y[15]])
-            bound_z.append([curve_z[8], curve_z[13], curve_z[15]])
+            #bound_y.append([curve_y[8], curve_y[13], curve_y[15]])
+            #bound_z.append([curve_z[8], curve_z[13], curve_z[15]])
 
-        idx = cartesian_data_ds[0].unique()
+        idx = cartesian_data_ds[axis].unique()
         curvesy_df = pd.DataFrame(curves_y, index= idx)
         curvesz_df = pd.DataFrame(curves_z, index = idx)
-        boundy_df = pd.DataFrame(bound_y, index = idx)
-        boundz_df = pd.DataFrame(bound_z, index = idx)
+        #boundy_df = pd.DataFrame(bound_y, index = idx)
+        #boundz_df = pd.DataFrame(bound_z, index = idx)
 
         self.curvesy = curvesy_df
         self.curvesz = curvesz_df
-        self.boundy = boundy_df
-        self.boundz = boundz_df
+        #self.boundy = boundy_df
+        #self.boundz = boundz_df
 
         return curvesy_df, curvesz_df
 
@@ -155,7 +167,7 @@ class Midsurface:
                 curvesy_df (pandas): y-coordinates of all points on mid-curves
                 curvesz_df (pandas): z-coordinates of all points on mid-curves
         """
-        colors = {'ca1': 'orangered', 'ca2': 'darkorange', 'ca3': 'gold', 'subiculum': 'firebrick'}
+        colors = {'ca1': 'pink', 'ca2': 'red', 'ca3': 'gold', 'subiculum': 'fuchsia', 'presubiculum':'darkviolet', 'parasubiculum':'indigo'}
 
         curves_y = []
         curves_z = []
@@ -246,7 +258,7 @@ class Midsurface:
 
         return curvesy_df, curvesz_df
 
-    def curves(self, num_slices):
+    def curves(self, num_slices, axis = 0):
         """Public method invoked by user to generate mid-curves.
 
             Args:
@@ -259,10 +271,10 @@ class Midsurface:
 
         """
 
-        self.subsample(num_slices)
+        self.subsample(num_slices, axis = axis)
 
         if not self.pc.comb:
-            curvesy_df, curvesz_df = self._curvesUncombined(self.data_ds)
+            curvesy_df, curvesz_df = self._curvesUncombined(self.data_ds, axis = axis)
         else:
             curvesy_df, curvesz_df = self._curvesCombined(self.data_ds)
 
@@ -495,8 +507,9 @@ class Midsurface:
         )
 
         data = [trace1, trace2]
-        labels = ['ca1', 'ca2', 'ca3', 'subiculum']
-        colors = {'ca1': 'orangered', 'ca2': 'darkorange', 'ca3': 'gold', 'subiculum': 'firebrick'}
+        labels = ['ca1', 'ca2', 'ca3', 'subiculum', 'presubiculum', 'parasubiculum']
+        colors = {'ca1': 'pink', 'ca2': 'red', 'ca3': 'gold', 'subiculum': 'fuchsia', 'presubiculum': 'darkviolet',
+                  'parasubiculum': 'indigo'}
 
         '''
         for col in self.data_ds.columns:
@@ -632,11 +645,11 @@ class Midsurface:
 
 
 if __name__ == "__main__":
-    pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_2/eileen_brain2_segmentations/', combined = False)
-    pc.Cartesian(311, 399)
+    pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/', combined = False)
+    pc.Cartesian(307, 455, axis = 1)
 
     ms = Midsurface(pc, system = "RAS")
-    ms.curves(4)
+    ms.curves(4, axis = 1)
     #ms.curves_cached(4)
 
     surface = ms.surface(100, 100)

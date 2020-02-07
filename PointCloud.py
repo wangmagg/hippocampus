@@ -239,7 +239,6 @@ if __name__ == "__main__":
 
     pc = PointCloud('hippocampus/BrainData/brain3/caSubBrain3.img')
     pc.Cartesian(307,455, axis = 1)
-    print(pc.cartesian_data_ras)
     pc.plot(system = "RAS")
 
 
@@ -247,7 +246,6 @@ if __name__ == "__main__":
     #pc_uc.Cartesian(311, 399)
     pc_uc.Cartesian(307, 455, axis = 1)
     pc_uc.plot(system = "RAS")
-    print(pc_uc.cartesian_data_ras)
 
     #with open('PycharmProjects/hippocampus/dataframes/cartesian_pc_ras', 'wb') as output:
         #pickle.dump(pc_uc.cartesian_data_ras, output)

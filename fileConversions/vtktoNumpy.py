@@ -7,7 +7,7 @@ import numpy as np
 import pickle
 
 def main():
-    filename = sys.argv[2]
+    filename = sys.argv[1]
 
     with open(filename) as fn:
         for i in range(5):
@@ -39,17 +39,15 @@ def main():
         for i in range(num_W):
             W[i] = float(fn.readline())
 
-    if (sys.argv[1] == 'midsurface')
-        with open(sys.argv[3], "wb") as output:
-            pickle.dump(V, output)
+    path = 'hippocampus/thicknessMap/dataframes/brain2/'
+    with open(path + sys.argv[2], "wb") as output:
+        pickle.dump(V, output)
 
-        with open(sys.argv[4], "wb") as output:
-            pickle.dump(F, output)
+    with open(path + sys.argv[3], "wb") as output:
+        pickle.dump(F, output)
 
-    elif (sys.argv[1] == 'thickness')
-        with open(sys.argv[3], "wb") as output:
-            pickle.dump(F, output)
-
+    with open(path + sys.argv[4], "wb") as output:
+        pickle.dump(F, output)
 
     print(V)
     print(F)

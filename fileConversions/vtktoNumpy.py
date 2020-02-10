@@ -40,14 +40,17 @@ def main():
             W[i] = float(fn.readline())
 
     path = 'hippocampus/thicknessMap/dataframes/brain2/'
-    with open(path + sys.argv[2], "wb") as output:
-        pickle.dump(V, output)
 
-    with open(path + sys.argv[3], "wb") as output:
-        pickle.dump(F, output)
+    if sys.argv[2] == 'midsurface':
+        with open(path + sys.argv[3], "wb") as output:
+            pickle.dump(V, output)
 
-    with open(path + sys.argv[4], "wb") as output:
-        pickle.dump(W, output)
+        with open(path + sys.argv[4], "wb") as output:
+            pickle.dump(F, output)
+
+    else:
+        with open(path + sys.argv[2], "wb") as output:
+            pickle.dump(W, output)
 
     print(V)
     print(F)

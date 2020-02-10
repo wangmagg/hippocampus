@@ -31,10 +31,13 @@ def main():
             F[i][1] = int(str.split(l)[2])
             F[i][2] = int(str.split(l)[3])
 
-        num_W = int(str.split(fn.readline())[1])
+        l = fn.readline()
+        while ('displacement' not in l):
+            l = fn.readline()
+
+        fn.readline()
+        num_W = num_V
         W = np.zeros(num_W)
-        fn.readline()
-        fn.readline()
 	 
         for i in range(num_W):
             W[i] = float(fn.readline())

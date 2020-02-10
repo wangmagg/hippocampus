@@ -47,7 +47,7 @@ def main():
         pickle.dump(F, output)
 
     with open(path + sys.argv[4], "wb") as output:
-        pickle.dump(F, output)
+        pickle.dump(W, output)
 
     print(V)
     print(F)

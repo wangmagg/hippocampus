@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 from PointCloud import PointCloud
+from Midsurface import Midsurface
 from scipy.spatial import Delaunay
 import plotly
 import plotly.graph_objs as go
@@ -767,107 +768,21 @@ if __name__ == "__main__":
     facemap = incidentFaceMap(2 * 50 * 50, Fjoined)
     VS = generateSourceULW(Qd, W, Fjoined, facemap)
     CS, NS = compCN(VS, Fjoined)
-
-
-    VS_s, Fjoined_s = subdivide(VS, Fjoined)
-
-    l, lw = kNN(Q_s, cdr, 5, subdivide = True)
-    bd_0 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 0, t=0.8)
-    bd_1 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 1, t=0.8)
-    bd_2 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 2, t=0.8)
-    bd_3 = surfaceIsocontour(Q_s.detach().numpy(), F_s.numpy(), lw, 3, t=0.8)
-
-    trace1 = go.Scatter3d(
-        x = bd_0[:, 0],
-        y = bd_0[:, 1],
-        z = bd_0[:, 2],
-
-        mode='markers + lines',
-        marker=dict(
-            size=2,
-            color='black',
-            opacity=0,
-        ),
-        line=dict(
-            width=3,
-            color="black"
-        )
-    )
-
-    trace2 = go.Scatter3d(
-        x = bd_1[:, 0],
-        y = bd_1[:, 1],
-        z = bd_1[:, 2],
-
-        mode='markers + lines',
-        marker=dict(
-            size=2,
-            color='blue',
-            opacity=0,
-        ),
-        line=dict(
-            width=3,
-            color="blue"
-        )
-    )
-
-
-    trace3 = go.Scatter3d(
-        x = bd_2[:, 0],
-        y = bd_2[:, 1],
-        z = bd_2[:, 2],
-
-        mode='markers + lines',
-        marker=dict(
-            size=2,
-            color='green',
-            opacity=0,
-        ),
-        line=dict(
-            width=3,
-            color="green"
-        )
-    )
-
-
-    trace4 = go.Scatter3d(
-        x = bd_3[:, 0],
-        y = bd_3[:, 1],
-        z = bd_3[:, 2],
-
-        mode='markers + lines',
-        marker=dict(
-            size=2,
-            color='purple',
-            opacity=0,
-        ),
-        line=dict(
-            width=3,
-            color="purple"
-        )
-    )
-
-    cl = np.argmax(l, axis = 1)
-    c_dict = {0:'firebrick', 1:'orangered', 2:'darkorange', 3:'gold'}
-    cls = [c_dict[i] for i in cl]
-
-    trace5 = go.Scatter3d(
-        x = Q_s[:, 0],
-        y = Q_s[:, 1],
-        z = Q_s[:, 2],
-
-        mode = 'markers',
-        marker=dict(
-            size=2,
-            color = cls,
-            opacity=0,
-        )
-
-    )
-
-    data = [trace1, trace2, trace3, trace4, trace5]
-    fig = go.Figure(data = data)
-    plotly.offline.plot(fig)
     '''
+    targetF, targetV = meshTarget('hippocampus/BrainData/brain2/caSubBrain2.img', 315, 455)
 
-    toByu()
+    pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/',
+                    combined=False, rc_axis=1)
+    pc.Cartesian(315, 455)
+
+    ms = Midsurface(pc, system="RAS")
+    ms.curves(4)
+    surface = ms.surface(100, 100)
+
+    sourceF, sourceV = meshSource(surface)
+
+    figTarget = visualize(targetF, targetV, 'Portland')
+    figSource = visualize(sourceF, sourceV, 'Reds')
+
+    figTarget.show()
+    figSource.show()

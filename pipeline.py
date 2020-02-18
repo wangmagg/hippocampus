@@ -9,20 +9,18 @@ from plotly.offline import plot
 """Example pipeline from reading of data to completion of optimization """
 
 # Read binary data
-pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_2/eileen_brain2_segmentations/', combined = False)
-pc.Cartesian(311, 399, system = "RAS")
+pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/', combined = False, rc_axis = 1)
+pc.Cartesian(315, 455, system = "RAS")
 
 # Create midsurface
-#ms = Midsurface(pc, system = "RAS")
-#ms.curves(4)
-#source = ms.surface(100, 100)
-with open('hippocampus/thicknessMap/dataframes/spline_splines_4_100_ras.df', 'rb') as input:
-    source = pickle.load(input)
+ms = Midsurface(pc, system = "RAS")
+ms.curves(4)
+source = ms.surface(100, 100)
 #ms.plot_splines(ms.usplines)
 #ms.plot_surface()
 
 # Create target mesh
-VH, FH = mesh.meshTarget('hippocampus/BrainData/brain2/caSubBrain2.img', 311, 399, system = "RAS")
+VH, FH = mesh.meshTarget('hippocampus/BrainData/brain3/caSubBrain3.img', 315, 455, system = "RAS")
 
 # Optimize midsurface
 m = 50

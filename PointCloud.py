@@ -6,6 +6,7 @@ import os
 import nibabel as nib
 from nibabel.affines import apply_affine
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import math
 import pickle
 import plotly
@@ -31,9 +32,10 @@ class PointCloud:
 
 
 
-    def __init__(self, rawdatapath, combined = True):
+    def __init__(self, rawdatapath, combined = True, rc_axis = 0):
         self.path = rawdatapath
         self.comb = combined
+        self.rc_axis = rc_axis
 
     def _toCartesian(self, fname):
         """Read binary data from single file and store in Cartesian space
@@ -53,7 +55,7 @@ class PointCloud:
         data_all = np.array(np.nonzero(data))
 
         #RAS coordinate conversion
-        self._M = img.affine[:3, :3]
+        self._M = abs(img.affine[:3, :3])
         self._abc = img.affine[:3, 3]
         ras = self._M.dot(data_all[:-1]) + np.tile(self._abc, (data_all.shape[1], 1)).transpose()
 
@@ -63,7 +65,7 @@ class PointCloud:
 
         return data_df, data_df_ras
 
-    def _joinCartesian(self, min, max, axis = 0):
+    def _joinCartesian(self, min, max):
         """Convert all binary files in path to Cartesian space and select desired section
             Args:
                 xmin (int): Voxel space x-coordinate of first slice in desired section
@@ -74,34 +76,27 @@ class PointCloud:
         """
         img_files = ['ca1', 'ca2', 'ca3', 'presubiculum','subiculum','parasubiculum']
 
-        #Temporary holding dictionaries for data from each file
-        #data_img = {'ca1': [], 'ca2': [], 'ca3': [], 'subiculum': []}
-        #data_img_ras = {'ca1': [], 'ca2': [], 'ca3': [], 'subiculum': []}
+        #Temporary holding lists for data from each file
         data_img_list = []
         data_img_ras_list = []
 
-        #For each file, convert to Cartesian and arrange by slice
+        #For each file, convert to Cartesian and append to list
         for img in img_files:
             data_df, data_ras_df = self._toCartesian(self.path + img + '.img')
             data_df['label'] = img
             data_ras_df['label'] = img
             data_img_list.append(data_df)
             data_img_ras_list.append(data_ras_df)
-            #data_df_arr, data_ras_df_arr = self._arrangeBySlice(xmin, xmax, data_df, data_ras_df)
-            #data_img[img] = data_df_arr[0]
-            #data_img_ras[img] = data_ras_df_arr[0]
 
-        #Convert dictionaries to dataframes
-        #data_img_df = pd.DataFrame(data_img)
-        #data_img_ras_df = pd.DataFrame(data_img_ras)
+        #Concatenate dataframes in lists
         data_img_df = pd.concat(data_img_list, ignore_index = True)
         data_img_ras_df = pd.concat(data_img_ras_list, ignore_index = True)
-        data_img_df = data_img_df.loc[(data_img_df[axis] >= min) & (data_img_df[axis] <= max)]
+        data_img_df = data_img_df.loc[(data_img_df[self.rc_axis] >= min) & (data_img_df[self.rc_axis] <= max)]
         data_img_ras_df = data_img_ras_df.loc[data_img_df.index]
 
         return data_img_df, data_img_ras_df
 
-    def Cartesian(self, min, max, axis = 0, system = "voxel"):
+    def Cartesian(self, min, max, system = "voxel"):
         """
         Public method invoked by user to perform conversion from binary data to Cartesian space.
 
@@ -113,11 +108,11 @@ class PointCloud:
 
         if self.comb:
             data, data_ras = self._toCartesian(self.path)
-            self.cartesian_data = data.loc[(data[axis] >= min) & (data[axis] <= max)]
+            self.cartesian_data = data.loc[(data[self.rc_axis] >= min) & (data[self.rc_axis] <= max)]
             self.cartesian_data_ras = data_ras.loc[self.cartesian_data.index]
 
         else:
-            self.cartesian_data, self.cartesian_data_ras = self._joinCartesian(min, max, axis)
+            self.cartesian_data, self.cartesian_data_ras = self._joinCartesian(min, max)
 
         if system == "voxel":
             return self.cartesian_data
@@ -200,9 +195,9 @@ class PointCloud:
         layout = go.Layout(
             scene=dict(
                 xaxis=dict(
-                    title='Anterior-Posterior (mm)'),
+                    title='Proximal-Distal (mm)'),
                 yaxis=dict(
-                    title='Left-Right (mm)'),
+                    title='Anterior-Posterior (mm)'),
                 zaxis=dict(
                     title='Superior-Inferior (mm)')
             )
@@ -237,15 +232,21 @@ class PointCloud:
 
 if __name__ == "__main__":
 
-    pc = PointCloud('hippocampus/BrainData/brain3/caSubBrain3.img')
-    pc.Cartesian(307,455, axis = 1)
+    '''
+    pc = PointCloud('hippocampus/BrainData/brain2/caSubBrain2.img')
+    #pc.Cartesian(307,455, axis = 1)
+    pc.Cartesian(311, 399)
+    print(pc.cartesian_data_ras)
     pc.plot(system = "RAS")
+    '''
 
 
-    pc_uc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/', combined = False)
+    pc_uc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/', combined = False, rc_axis = 1)
     #pc_uc.Cartesian(311, 399)
-    pc_uc.Cartesian(307, 455, axis = 1)
-    pc_uc.plot(system = "RAS")
+    pc_uc.Cartesian(310, 455)
+    pc_uc.plot(system = 'RAS')
+    pc_uc.plot()
+
 
     #with open('PycharmProjects/hippocampus/dataframes/cartesian_pc_ras', 'wb') as output:
         #pickle.dump(pc_uc.cartesian_data_ras, output)

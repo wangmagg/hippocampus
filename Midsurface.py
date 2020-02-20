@@ -606,4 +606,4 @@ if __name__ == "__main__":
     #with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100_ras_biasedlow.df", "wb") as output:
     #    pickle.dump(surface, output)
 
-    ms.plot_surface()
+    #ms.plot_surface()

@@ -231,24 +231,19 @@ class PointCloud:
 
 
 if __name__ == "__main__":
+    # brain 2: (311, 399)
+    # brain 3: (315, 455)
+    # brain 4: (224, 361)
 
-    '''
-    pc = PointCloud('hippocampus/BrainData/brain2/caSubBrain2.img')
-    #pc.Cartesian(307,455, axis = 1)
-    pc.Cartesian(311, 399)
-    print(pc.cartesian_data_ras)
+    pc = PointCloud('hippocampus/BrainData/brain' + sys.argv[1] + '/caSubBrain' + sys.argv[1] + '.img')
+    pc.Cartesian(sys.argv[2], sys.argv[3])
     pc.plot(system = "RAS")
-    '''
 
 
-    pc_uc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/', combined = False, rc_axis = 1)
-    #pc_uc.Cartesian(311, 399)
-    pc_uc.Cartesian(310, 455)
+    pc_uc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_' + sys.argv[1] + '/eileen_brain' + sys.argv[1] + '_segmentations/', combined = False, rc_axis = 1)
+    pc_uc.Cartesian(sys.argv[2], sys.argv[3])
     pc_uc.plot(system = 'RAS')
-    pc_uc.plot()
 
 
-    #with open('PycharmProjects/hippocampus/dataframes/cartesian_pc_ras', 'wb') as output:
-        #pickle.dump(pc_uc.cartesian_data_ras, output)
-
-    #pc_uc.plot(system = "RAS")
+    with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/cartesian_pc_ras', 'wb') as output:
+        pickle.dump(pc_uc.cartesian_data_ras, output)

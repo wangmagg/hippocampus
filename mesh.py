@@ -225,7 +225,7 @@ def meshSynthTarget(m, n, a, w):
     
     return tV, tF, tVmid, tFmid
     
-def meshTarget(img_file, first_slice, last_slice, system = "voxel"):
+def meshTarget(img_file, first_slice, last_slice, system = "voxel", rc_axis = 0, step = 1):
     """Mesh binary data through marching cubes.
 
         Args:
@@ -246,21 +246,26 @@ def meshTarget(img_file, first_slice, last_slice, system = "voxel"):
 
     nxi = hdr['dim'][1:4]
 
+
     # Select the desired section of data
     data = img.get_data()
     data = data.reshape((nxi[0], nxi[1], nxi[2]))
-    data = data[first_slice:last_slice]
+
+    if rc_axis == 1:
+        data = data[:, first_slice:last_slice, :]
+    else:
+        data = data[first_slice:last_slice]
 
     # Create mesh using a marching cubes algorithm
     # V and F are the vertices and faces, respectively
     # To downsample so that mesh is less fine, use larger step_size
-    V, F, N, v = measure.marching_cubes_lewiner(data, level = 0, step_size = 2)
+    V, F, N, v = measure.marching_cubes_lewiner(data, level = 0, step_size = step)
 
     # Add the x-value of the first slice to the first coordinate of all vertices
-    V[:, 0] += first_slice
+    V[:, rc_axis] += first_slice
 
     if system == "RAS":
-        M = img.affine[:3, :3]
+        M = abs(img.affine[:3, :3])
         abc = img.affine[:3, 3]
         V = V.dot(M) + np.tile(abc, (V.shape[0], 1))
 
@@ -769,7 +774,8 @@ if __name__ == "__main__":
     VS = generateSourceULW(Qd, W, Fjoined, facemap)
     CS, NS = compCN(VS, Fjoined)
     '''
-    targetF, targetV = meshTarget('hippocampus/BrainData/brain2/caSubBrain2.img', 315, 455)
+    targetV, targetF = meshTarget('hippocampus/BrainData/brain3/caSubBrain3.img', 315, 455, system = "RAS", rc_axis = 1)
+
 
     pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/',
                     combined=False, rc_axis=1)
@@ -779,10 +785,26 @@ if __name__ == "__main__":
     ms.curves(4)
     surface = ms.surface(100, 100)
 
-    sourceF, sourceV = meshSource(surface)
+    sourceQ, sourceF = meshSource(surface)
 
-    figTarget = visualize(targetF, targetV, 'Portland')
-    figSource = visualize(sourceF, sourceV, 'Reds')
+    figTarget = visualize(targetV, targetF, 'Portland', normals = True)
+    figSource = visualize(sourceQ, sourceF, 'Reds', normals = True)
 
     figTarget.show()
     figSource.show()
+
+    with open('hippocampus/thicknessMap/dataframes/brain3/sourcePC', 'wb') as output:
+        pickle.dump(surface, output)
+
+    with open('hippocampus/thicknessMap/dataframes/brain3/sourceQ', 'wb') as output:
+        pickle.dump(sourceQ, output)
+
+    with open('hippocampus/thicknessMap/dataframes/brain3/sourceF', 'wb') as output:
+        pickle.dump(sourceF, output)
+    '''
+    with open('hippocampus/thicknessMap/dataframes/brain3/targetV', 'wb') as output:
+        pickle.dump(targetV, output)
+
+    with open('hippocampus/thicknessMap/dataframes/brain3/targetF', 'wb') as output:
+        pickle.dump(targetF, output)
+    '''

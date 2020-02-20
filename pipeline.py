@@ -74,7 +74,7 @@ uvw_upper, uvw_lower, uvw_thickness = opt.unfold(qreslist[-1].detach().cpu(), wu
 figW, figThickness = opt.visualizeUnfolded(uvw_upper, uvw_lower, uvw_thickness)
 
 
-with open('/hippocampus/thicknessMap/dataframes/brain2/cartesian_pc_ras', 'rb') as input:
+with open('/hippocampus/thicknessMap/dataframes/brain3/cartesian_pc_ras', 'rb') as input:
     cartesian_data_ras = pickle.load(input)
 
 Vthick, Fthick = mesh.meshSource(uvw_thickness)

@@ -607,9 +607,9 @@ def flatten(mesh, m, n):
 
     return dugrid.flatten(), dvgrid.flatten()
 
-def kNN(Q, cd, nn = 5, subdivide = False, numV = 50):
+def kNN(Q, cd, nn = 5):
 
-    label_dict = {'subiculum': 0, 'ca1': 1, 'ca2': 2, 'ca3': 3}
+    label_dict = {'presubiculum': 0, 'subiculum': 1, 'parasubiculum':2, 'ca1': 3, 'ca2': 4, 'ca3': 5}
     labels = np.zeros((Q.shape[0], len(label_dict)))
 
     for c, pt in enumerate(Q):
@@ -774,12 +774,16 @@ if __name__ == "__main__":
     VS = generateSourceULW(Qd, W, Fjoined, facemap)
     CS, NS = compCN(VS, Fjoined)
     '''
-    targetV, targetF = meshTarget('hippocampus/BrainData/brain3/caSubBrain3.img', 315, 455, system = "RAS", rc_axis = 1)
+    targetV, targetF = meshTarget('hippocampus/BrainData/brain' + sys.argv[1] + '/caSubBrain' + sys.argv[1] + '.img',
+                                  int(sys.argv[2]), int(sys.argv[3]), system = "RAS", rc_axis = 1)
+
+    targetV_ds, targetF_ds = meshTarget('hippocampus/BrainData/brain' + sys.argv[1] + '/caSubBrain' + sys.argv[1] + '.img',
+                                  int(sys.argv[2]), int(sys.argv[3]), system="RAS", rc_axis=1, step = 2)
 
 
-    pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/',
+    pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_' + sys.argv[1] + '/eileen_brain' + sys.argv[1] + '_segmentations/',
                     combined=False, rc_axis=1)
-    pc.Cartesian(315, 455)
+    pc.Cartesian(int(sys.argv[2]), int(sys.argv[3]))
 
     ms = Midsurface(pc, system="RAS")
     ms.curves(4)
@@ -787,24 +791,30 @@ if __name__ == "__main__":
 
     sourceQ, sourceF = meshSource(surface)
 
-    figTarget = visualize(targetV, targetF, 'Portland', normals = True)
-    figSource = visualize(sourceQ, sourceF, 'Reds', normals = True)
+    figTarget = visualize(targetV, targetF, 'Portland')
+    figSource = visualize(sourceQ, sourceF, 'Reds')
 
     figTarget.show()
     figSource.show()
 
-    with open('hippocampus/thicknessMap/dataframes/brain3/sourcePC', 'wb') as output:
+    with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/sourcePC', 'wb') as output:
         pickle.dump(surface, output)
 
-    with open('hippocampus/thicknessMap/dataframes/brain3/sourceQ', 'wb') as output:
+    with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/sourceQ', 'wb') as output:
         pickle.dump(sourceQ, output)
 
-    with open('hippocampus/thicknessMap/dataframes/brain3/sourceF', 'wb') as output:
+    with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/sourceF', 'wb') as output:
         pickle.dump(sourceF, output)
-    '''
-    with open('hippocampus/thicknessMap/dataframes/brain3/targetV', 'wb') as output:
+
+    with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/targetV', 'wb') as output:
         pickle.dump(targetV, output)
 
-    with open('hippocampus/thicknessMap/dataframes/brain3/targetF', 'wb') as output:
+    with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/targetF', 'wb') as output:
         pickle.dump(targetF, output)
-    '''
+
+    with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/targetV_ds', 'wb') as output:
+        pickle.dump(targetV_ds, output)
+
+    with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/targetF_ds', 'wb') as output:
+        pickle.dump(targetF_ds, output)
+

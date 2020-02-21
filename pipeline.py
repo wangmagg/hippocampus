@@ -5,22 +5,43 @@ import Optimization
 import torch
 import pickle
 from plotly.offline import plot
+import argparse as ap
 
 """Example pipeline from reading of data to completion of optimization """
 
-# Read binary data
-pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/', combined = False, rc_axis = 1)
-pc.Cartesian(315, 455, system = "RAS")
+def get_args():
+    p = ap.ArgumentParser()
 
-# Create midsurface
-ms = Midsurface(pc, system = "RAS")
-ms.curves(4)
-source = ms.surface(100, 100)
+    p.add_argument("--brain", type = str, required = True, choices = ["2", "3", "4"])
+    p.add_argument("--first_slice", type = int, required = True)
+    p.add_argument("--last_slice", type = int, required = True)
+    p.add_argument("--cached_surface", type = int, required = True, choices = [0, 1])
+    p.add_argument("--rc_axis", type = int, required = True, choices = [0,1])
+
+    return p.parse_args()
+
+args = get_args()
+
+if args.cached_surface == 0:
+    # Read binary data
+    pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_' + args.brain + '/eileen_brain' + args.brain + '_segmentations/', combined = False, rc_axis = args.rc_axis)
+    pc.Cartesian(args.first_slice, args.last_slice, system = "RAS")
+
+    # Create midsurface
+    ms = Midsurface(pc, system = "RAS")
+    ms.curves(4)
+    source = ms.surface(100, 100)
+
+else:
+    with open('hippocampus/thicknessMap/dataframes/brain' + args.brain + '/sourcePC', 'rb') as input:
+        source = pickle.load(input)
+
 #ms.plot_splines(ms.usplines)
 #ms.plot_surface()
 
 # Create target mesh
-VH, FH = mesh.meshTarget('hippocampus/BrainData/brain3/caSubBrain3.img', 315, 455, system = "RAS")
+VH, FH = mesh.meshTarget('hippocampus/BrainData/brain' + args.brain + '/caSubBrain' + args.brain + '.img', args.first_slice, args.last_slice, system = "RAS", rc_axis = args.rc_axis)
+VHds, FHds = mesh.meshTarget('hippocampus/BrainData/brain' + args.brain + '/caSubBrain' + args.brain + '.img', args.first_slice, args.last_slice, system = "RAS", rc_axis = args.rc_axis, step = 2)
 
 # Optimize midsurface
 m = 50
@@ -73,8 +94,11 @@ figSourceTargetNonsymm = opt.visualizeSourceTargetNonsymm(qreslist[-1], wureslis
 uvw_upper, uvw_lower, uvw_thickness = opt.unfold(qreslist[-1].detach().cpu(), wureslist[-1].flatten().detach().cpu(), wlreslist[-1].flatten().detach().cpu())
 figW, figThickness = opt.visualizeUnfolded(uvw_upper, uvw_lower, uvw_thickness)
 
+with open('/hippocampus/thicknessMap/dataframes/brain' + args.brain + '/uvw_thickness', 'wb') as output:
+    pickle.dump(uvw_thickness, output)
 
-with open('/hippocampus/thicknessMap/dataframes/brain3/cartesian_pc_ras', 'rb') as input:
+'''
+with open('/hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/cartesian_pc_ras', 'rb') as input:
     cartesian_data_ras = pickle.load(input)
 
 Vthick, Fthick = mesh.meshSource(uvw_thickness)
@@ -99,3 +123,4 @@ ax.set_xlabel('Rostral-Caudal Axis (mm)')
 ax.set_ylabel('Proximal-Distal Axis (mm)')
 ax.set_aspec('equal')
 plt.show()
+'''

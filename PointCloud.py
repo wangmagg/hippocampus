@@ -236,12 +236,12 @@ if __name__ == "__main__":
     # brain 4: (224, 361)
 
     pc = PointCloud('hippocampus/BrainData/brain' + sys.argv[1] + '/caSubBrain' + sys.argv[1] + '.img')
-    pc.Cartesian(sys.argv[2], sys.argv[3])
+    pc.Cartesian(int(sys.argv[2]), int(sys.argv[3]))
     pc.plot(system = "RAS")
 
 
     pc_uc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_' + sys.argv[1] + '/eileen_brain' + sys.argv[1] + '_segmentations/', combined = False, rc_axis = 1)
-    pc_uc.Cartesian(sys.argv[2], sys.argv[3])
+    pc_uc.Cartesian(int(sys.argv[2]), int(sys.argv[3]))
     pc_uc.plot(system = 'RAS')
 
 

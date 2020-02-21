@@ -593,8 +593,12 @@ class Midsurface:
 
 
 if __name__ == "__main__":
-    pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_3/eileen_brain3_segmentations/', combined = False, rc_axis = 1)
-    pc.Cartesian(315, 455)
+    # brain 2: (311, 399)
+    # brain 3: (315, 455)
+    # brain 4: (224, 361)
+
+    pc = PointCloud('/cis/project/exvivohuman_11T/data/subfield_masks/brain_' + sys.argv[1] + '/eileen_brain3_segmentations/', combined = False, rc_axis = 1)
+    pc.Cartesian(int(sys.argv[2]), int(sys.argv[3]))
 
     ms = Midsurface(pc, system = "RAS")
     ms.curves(4)
@@ -602,8 +606,5 @@ if __name__ == "__main__":
 
     surface = ms.surface(100, 100)
     ms.plot_splines(ms.usplines)
-
-    #with open("PycharmProjects/hippocampus/dataframes/spline_splines_4_100_ras_biasedlow.df", "wb") as output:
-    #    pickle.dump(surface, output)
 
     #ms.plot_surface()

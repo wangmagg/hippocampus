@@ -244,6 +244,5 @@ if __name__ == "__main__":
     pc_uc.Cartesian(int(sys.argv[2]), int(sys.argv[3]))
     pc_uc.plot(system = 'RAS')
 
-
     with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/cartesian_pc_ras', 'wb') as output:
         pickle.dump(pc_uc.cartesian_data_ras, output)

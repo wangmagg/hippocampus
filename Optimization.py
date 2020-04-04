@@ -55,6 +55,7 @@ class Optimization:
         source = mesh.downsample(source, m, n)
         self.Q, self.FS = mesh.meshSource(source)
         self.VH, self.FH = VH, FH
+        self.VH, self.FH = VH, FH
         self.m = m
         self.n = n
 

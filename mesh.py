@@ -724,32 +724,31 @@ def visualize(V, F, color, normals = False):
 
     return fig
 
-def toByu():
-    with open(sys.argv[1], "rb") as input:
-        V = pickle.load(input)
+def toMesh():
+    # Open byu file
+    with open(sys.argv[1], "r") as fp:
+        line = fp.readline()
+        els = line.strip().split()
 
-    with open(sys.argv[2], "rb") as input:
-        F = pickle.load(input)
+        num_points = int(els[1])
+        num_faces = int(els[2])
 
-    file = open(sys.argv[3], "w")
+        V = np.zeros((num_points, 3))
+        F = np.zeros((num_faces, 3))
 
-    num_points = V.shape[0]
-    num_faces = F.shape[0]
+        fp.readline()
 
-    file.write("1 %d %d %d \n" % (num_points, num_faces, num_faces*3))
-    file.write("1 %d \n" % num_faces)
+        for i in range(num_points):
+            line = fp.readline()
+            els = line.strip().split()
+            V[i] = [float(els[0]), float(els[1]), float(els[2])]
 
-    for v in V:
-        file.write("%f %f %f \n" % (v[0], v[1], v[2]))
+        for i in range(num_faces):
+            line = fp.readline()
+            els = line.strip().split()
+            F[i] = [int(els[0])-1, int(els[1])-1, -1*(int(els[2]))-1]
 
-    for i,f in enumerate(F):
-        if i == num_faces - 1:
-            file.write("%d %d %d" % (f[0]+1, f[1]+1, -1 * (f[2]+1)))
-        else:
-            file.write("%d %d %d \n" % (f[0]+1, f[1]+1, -1*(f[2]+1)))
-
-    file.close()
-
+    return torch.as_tensor(V, dtype = torch.float32), torch.as_tensor(F, dtype = torch.long)
 
 if __name__ == "__main__":
 
@@ -773,7 +772,7 @@ if __name__ == "__main__":
     facemap = incidentFaceMap(2 * 50 * 50, Fjoined)
     VS = generateSourceULW(Qd, W, Fjoined, facemap)
     CS, NS = compCN(VS, Fjoined)
-    '''
+    
     targetV, targetF = meshTarget('hippocampus/BrainData/brain' + sys.argv[1] + '/caSubBrain' + sys.argv[1] + '.img',
                                   int(sys.argv[2]), int(sys.argv[3]), system = "RAS", rc_axis = 1)
 
@@ -817,4 +816,5 @@ if __name__ == "__main__":
 
     with open('hippocampus/thicknessMap/dataframes/brain' + sys.argv[1] + '/targetF_ds', 'wb') as output:
         pickle.dump(targetF_ds, output)
-
+    '''
+    toMesh()

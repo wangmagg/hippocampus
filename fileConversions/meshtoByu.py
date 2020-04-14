@@ -12,8 +12,16 @@ def toByu():
 
     num_points = V.shape[0]
     num_faces = F.shape[0]
+    E = np.vstack([np.transpose(np.vstack([F[:, 0], F[:, 1]])),
+                   np.transpose(np.vstack([F[:, 1], F[:, 2]])),
+                   np.transpose(np.vstack([F[:, 2], F[:, 0]]))
+                   ])
 
-    file.write("1 %d %d %d \n" % (num_points, num_faces, num_faces*3))
+    E = np.sort(E, 1)
+    E = np.unique(E, axis=0)
+    num_edges = E.shape[0]
+
+    file.write("1 %d %d %d \n" % (num_points, num_faces, num_edges))
     file.write("1 %d \n" % num_faces)
 
     for v in V:
